@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import Image from 'next/image';
+import Image from './IPImage';
 import Universe from './Universe';
 import { INTRO_VIDEO } from './content';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -222,6 +222,16 @@ export default function Home() {
       '噗噗：有事！想和你玩！',
       '墩墩：……就五分钟。',
       '友情续费成功。永久有效。',
+      '噗噗：我刚才数了三朵云。',
+      '墩墩：这也值得汇报？',
+      '噗噗：值得！第四朵更像你！',
+      '墩墩：今天不营业。噗噗：那我来营业。',
+      '系统提示：搭子黏合度已超标。',
+      '警告：两只小可爱正在靠近。',
+      '墩墩：别碰帽子。噗噗：就碰一下！',
+      '噗噗：你看起来像一颗不开心的丸子。',
+      '墩墩：……陪你五分钟。噗噗：一百分钟！',
+      '今日成就：一起把时间浪费得很漂亮。',
     ];
     setLine(lines[Math.floor(Math.random() * lines.length)]);
     if (motion && reaction.current)
@@ -478,6 +488,15 @@ export default function Home() {
       </section>
       <Universe motion={motion} />
       <section className="moments section" id="moments">
+        <Image
+          unoptimized
+          className="moments-sticker"
+          src="/media/keychain-sticker.png"
+          width={300}
+          height={320}
+          alt=""
+          aria-hidden="true"
+        />
         <div className="section-kicker reveal">
           <span>06 / LITTLE THINGS, BIG MOODS</span>
           <span>友情，没有正经剧本。</span>

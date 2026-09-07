@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
+import Image from './IPImage';
+import Playground from './Playground';
 import gsap from 'gsap';
 import {
   ArrowUpRight,
@@ -47,6 +48,34 @@ const moods = [
     tag: '营业状态：明天再说',
     reply: '噗噗：这个项目，我跟了。',
   },
+  {
+    title: '社交电量：只够点头。',
+    sub: '墩墩：我在听。眼睛先休息。',
+    image: 1,
+    tag: '社交电量 8%',
+    reply: '噗噗：点头也算聊天！',
+  },
+  {
+    title: '突然想当一朵云。',
+    sub: '噗噗：飘到哪里，就陪你到哪里。',
+    image: 5,
+    tag: '云朵模式 ON',
+    reply: '墩墩：那我当你的阴影。',
+  },
+  {
+    title: '今天的脑袋是空的。',
+    sub: '空空的，刚好装下晚饭。',
+    image: 31,
+    tag: '脑内空间 99%',
+    reply: '噗噗：留一点给我！',
+  },
+  {
+    title: '不想长大，申请延期。',
+    sub: '申请理由：朋友还没玩够。',
+    image: 40,
+    tag: '成年缓冲中',
+    reply: '墩墩：批准，有效期一万年。',
+  },
 ];
 const archive = [
   [6, '数码小确幸', '手机也想有个搭子'],
@@ -62,6 +91,13 @@ const archive = [
   [28, '包装脑洞', '盒子里面，藏着好朋友'],
   [54, '文具胡闹局', '上班也要偷偷可爱'],
 ] as const;
+const stickers = [
+  'dundun-sticker.png',
+  'pupu-sticker.png',
+  'keychain-sticker.png',
+  'duo.png',
+  'peek.png',
+];
 const scenes = [
   {
     image: 3,
@@ -175,22 +211,27 @@ export default function Universe({ motion }: { motion: boolean }) {
         <div className="mood-layout">
           <div className="mood-menu reveal">
             <span className="tiny-label">请选择你的精神状态 ↓</span>
-            {['墩墩式省电', '噗噗式快乐', '嘴硬式贴贴', '双人式摸鱼'].map(
-              (m, i) => (
-                <button
-                  key={m}
-                  className={
-                    mood === i ? 'mood-choice selected' : 'mood-choice'
-                  }
-                  aria-pressed={mood === i}
-                  onClick={() => choose(i)}
-                >
-                  <span>0{i + 1}</span>
-                  {m}
-                  <ArrowUpRight size={22} />
-                </button>
-              ),
-            )}
+            {[
+              '墩墩式省电',
+              '噗噗式快乐',
+              '嘴硬式贴贴',
+              '双人式摸鱼',
+              '云朵式放空',
+              '社交式点头',
+              '晚饭式认真',
+              '延期式长大',
+            ].map((m, i) => (
+              <button
+                key={m}
+                className={mood === i ? 'mood-choice selected' : 'mood-choice'}
+                aria-pressed={mood === i}
+                onClick={() => choose(i)}
+              >
+                <span>0{i + 1}</span>
+                {m}
+                <ArrowUpRight size={22} />
+              </button>
+            ))}
             <button
               className="random-mood"
               onClick={() =>
@@ -204,15 +245,7 @@ export default function Universe({ motion }: { motion: boolean }) {
             <div className="mood-sheet">
               <Image
                 unoptimized
-                src={
-                  '/media/' +
-                  [
-                    'dundun-sticker.png',
-                    'pupu-sticker.png',
-                    'duo.png',
-                    'peek.png',
-                  ][mood]
-                }
+                src={'/media/' + stickers[mood % stickers.length]}
                 width={990}
                 height={1400}
                 alt={moods[mood].title + '角色贴纸'}
@@ -271,6 +304,7 @@ export default function Universe({ motion }: { motion: boolean }) {
           ))}
         </div>
       </section>
+      <Playground motion={motion} />
       <section className={'nonsense section ' + (chaos ? 'nonsense-on' : '')}>
         <div className="section-kicker reveal">
           <span>PLEASE DO NOT PRESS THIS BUTTON.</span>
@@ -349,27 +383,20 @@ export default function Universe({ motion }: { motion: boolean }) {
                 <Image
                   unoptimized
                   className="archive-cutout"
-                  src={
-                    '/media/' +
-                    [
-                      'keychain-sticker.png',
-                      'duo.png',
-                      'keychain-sticker.png',
-                      'dundun-sticker.png',
-                      'pupu-sticker.png',
-                      'peek.png',
-                      'duo.png',
-                      'keychain-sticker.png',
-                      'dundun-sticker.png',
-                      'pupu-sticker.png',
-                      'duo.png',
-                      'peek.png',
-                    ][i]
-                  }
+                  src={'/media/archive-' + id + '.webp'}
                   width={990}
                   height={1400}
                   alt={title}
                   loading="lazy"
+                />
+                <Image
+                  unoptimized
+                  className="archive-sticker"
+                  src={'/media/' + stickers[i % stickers.length]}
+                  width={180}
+                  height={180}
+                  alt=""
+                  aria-hidden="true"
                 />
                 <span className="archive-open">
                   <Plus size={23} />
