@@ -1487,8 +1487,11 @@ h1 span {
   color: var(--muted);
 }
 .art-full {
-  width: 100%;
-  height: min(67svh, 790px);
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: min(67svh, 790px);
+  margin-inline: auto;
   object-fit: contain;
   min-height: 0;
   background: #fffdf8;

@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import Image from './IPImage';
@@ -388,14 +387,14 @@ export default function Home() {
           <span className="travel-label">2016 — 2026 / 好朋友出逃实录</span>
           <h2 id="travel-entry-title">世界那么大。<br /><span>一起闯点祸。</span></h2>
           <p>20 段旅程，一对最佳损友。<br />有白崖、有极光色的梦，还有一把死活打不开门的钥匙。</p>
-          <Link href="/travel" className="travel-cta">拆开出逃档案 <ArrowUpRight size={24} /></Link>
+          <a href="/travel" className="travel-cta">拆开出逃档案 <ArrowUpRight size={24} /></a>
           <span className="travel-entry-note">墩墩：丢脸的部分可以不写吗？<br />噗噗：已经加粗了。</span>
         </div>
-        <Link href="/travel" className="travel-entry-art reveal" aria-label="查看全部 20 份出逃档案">
+        <a href="/travel" className="travel-entry-art reveal" aria-label="查看全部 20 份出逃档案">
           <Image src="/travel/英国伦敦-thumb.webp" width={480} height={720} alt="英国伦敦旅行海报" loading="lazy" />
           <Image src="/travel/冰岛环岛-thumb.webp" width={480} height={640} alt="冰岛环岛旅行海报" loading="lazy" />
           <span className="travel-entry-stamp">搭子不换<br />地图接着翻 ↗</span>
-        </Link>
+        </a>
       </section>
       <section className="manifesto section">
         <span className="section-kicker reveal">
@@ -443,7 +442,7 @@ export default function Home() {
           </p>
         </div>
         <div className="portal-grid">
-          <Link className="portal portal-kv reveal" href="/kv">
+          <a className="portal portal-kv reveal" href="/kv">
             <div className="portal-visual">
               <Image
                 src="/gallery/kv/08.webp"
@@ -458,8 +457,8 @@ export default function Home() {
               脑洞巨幕厅 <ArrowUpRight size={30} />
             </h3>
             <p>今天开始，认真地不务正业。</p>
-          </Link>
-          <Link className="portal portal-wallpapers reveal" href="/wallpapers">
+          </a>
+          <a className="portal portal-wallpapers reveal" href="/wallpapers">
             <div className="wp-fill" aria-hidden="true">
               {[
                 '01',
@@ -544,7 +543,7 @@ export default function Home() {
               </h3>
               <p>谁的锁屏掉在这里了？先认领一只。</p>
             </div>
-          </Link>
+          </a>
         </div>
       </section>
       <section className="creator" id="creator">

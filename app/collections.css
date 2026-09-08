@@ -954,13 +954,15 @@ html {
   width: min(94vw, 1300px) !important;
 }
 .collection-dialog .art-full {
-  height: min(68svh, 800px);
+  height: auto;
+  max-height: min(68svh, 800px);
 }
 .wallpaper-dialog {
   max-width: 670px !important;
 }
 .wallpaper-dialog .art-full {
-  height: 67svh;
+  height: auto;
+  max-height: 67svh;
   background: #e9e2d4;
 }
 @media (max-width: 1200px) {
@@ -1592,10 +1594,11 @@ html {
   .collection-dialog .art-full {
     height: auto;
     max-height: 62svh;
-    aspect-ratio: 16/9;
+    aspect-ratio: auto;
   }
   .wallpaper-dialog .art-full {
-    height: 58svh;
+    height: auto;
+    max-height: 58svh;
     aspect-ratio: auto;
   }
   .creator h2 {
