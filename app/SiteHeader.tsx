@@ -149,7 +149,6 @@ export default function SiteHeader({
       </Link>
       <nav className="site-nav" aria-label="主导航">
         <Link href="/#duo">两位主角</Link>
-        <Link href="/#origin">创作灵感</Link>
         <Link className="nav-travel" href="/travel" aria-current={active === 'travel' ? 'page' : undefined}>
           出逃档案 <span aria-hidden="true">↗</span>
         </Link>
@@ -165,6 +164,7 @@ export default function SiteHeader({
         <Link href="/#festival">节日放映</Link>
         <Link href="/#moods">胡闹现场</Link>
         <Link href="/#archive">可爱设计</Link>
+        <Link href="/#origin">创作灵感</Link>
       </nav>
       <div className="header-switches" data-silent>
         <button
