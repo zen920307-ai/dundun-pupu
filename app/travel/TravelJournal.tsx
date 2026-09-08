@@ -1,6 +1,5 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowDown, ArrowUpRight, MapPin, Plus, Ticket, X } from 'lucide-react';
@@ -113,7 +112,7 @@ export default function TravelJournal() {
           </article>)}
         </div>
       </section>
-      <section className="travel-ending"><Image src="/media/duo.png" width={300} height={300} alt="最好的朋友，墩墩和噗噗" loading="lazy"/><div><p className="travel-label">TO BE CONTINUED…</p><h2>下一站还没定。<br /><span>搭子，早就定了。</span></h2><Link className="travel-cta" href="/">回家继续胡闹 <ArrowUpRight size={20}/></Link></div></section>
+      <section className="travel-ending"><Image src="/media/duo.png" width={300} height={300} alt="最好的朋友，墩墩和噗噗" loading="lazy"/><div><p className="travel-label">TO BE CONTINUED…</p><h2>下一站还没定。<br /><span>搭子，早就定了。</span></h2><a className="travel-cta" href="/">回家继续胡闹 <ArrowUpRight size={20}/></a></div></section>
       <div className="travel-colophon"><span>墩墩和噗噗 · 原创 IP BY 拯</span><a href="#travel-archive">再翻一遍 ↑</a><span>友情持续营业中</span></div>
       {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- native modal dialog: ESC handled by the browser */}
       <dialog

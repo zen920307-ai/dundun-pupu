@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ArrowLeft, ArrowUpRight, Expand, Download } from 'lucide-react';
@@ -59,9 +58,9 @@ export default function Collection({ kind }: { kind: 'kv' | 'wallpapers' }) {
         onMotionChange={() => setMotion(!motion)}
       />
       <section className="collection-intro section">
-        <Link className="crumb-back" href="/">
+        <a className="crumb-back" href="/">
           <ArrowLeft size={16} /> 返回胡闹现场
-        </Link>
+        </a>
         <div className="collection-heading">
           <div>
             <p className="collection-overline">
@@ -183,16 +182,16 @@ export default function Collection({ kind }: { kind: 'kv' | 'wallpapers' }) {
         </div>
         <div className="collection-end">
           <p>看到这里，你的可爱浓度已经超标。</p>
-          <Link
+          <a
             className="pill orange"
             href={wallpaper ? '/kv' : '/wallpapers'}
           >
             {wallpaper ? '去看更大的脑洞' : '顺便换张壁纸'}
             <ArrowUpRight size={18} />
-          </Link>
-          <Link href="/" className="collection-home">
+          </a>
+          <a href="/" className="collection-home">
             回家继续胡闹 ↗
-          </Link>
+          </a>
         </div>
       </section>
       <ArtworkViewer

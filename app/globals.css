@@ -359,8 +359,12 @@ h1 span {
   white-space: nowrap;
 }
 .ticker-bit i {
-  font-style: normal;
-  opacity: 0.7;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.72;
 }
 @keyframes ticker-scroll {
   from {
@@ -2516,6 +2520,7 @@ footer {
   }
   .ticker-track {
     font-size: 20px;
+    animation-duration: 105s;
   }
   .duo h2 {
     font-size: clamp(33px, 8.9vw, 48px);

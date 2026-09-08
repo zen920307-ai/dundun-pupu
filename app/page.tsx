@@ -81,6 +81,7 @@ export default function Home() {
   useEffect(() => {
     if (!motion) return;
     const ctx = gsap.context(() => {
+      gsap.set('.hero-copy', { clearProps: 'transform,opacity' });
       gsap.from('.intro-in', {
         y: 65,
         opacity: 0,
@@ -306,7 +307,7 @@ export default function Home() {
               ].map((bit) => (
                 <span className="ticker-bit" key={bit}>
                   {bit}
-                  <i>✳</i>
+                  <i aria-hidden="true" />
                 </span>
               ))}
             </span>
@@ -420,7 +421,7 @@ export default function Home() {
           loading="lazy"
         />
         <span className="manifesto-doodle" aria-hidden="true">
-          ✳
+          +
         </span>
       </section>
       <Universe motion={motion} />
