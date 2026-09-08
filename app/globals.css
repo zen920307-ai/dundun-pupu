@@ -1439,9 +1439,9 @@ h1 span {
 }
 .art-dialog {
   position: fixed !important;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0 !important;
+  margin: auto !important;
+  transform: none !important;
   translate: none;
   width: min(92vw, 1080px) !important;
   max-width: 1080px !important;

@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import Image from './IPImage';
 import { Volume2, VolumeX, Sparkles, Pause } from 'lucide-react';
@@ -134,7 +133,7 @@ export default function SiteHeader({
   };
   return (
     <header className="site-header">
-      <Link className="site-logo" href="/" aria-label="墩墩和噗噗首页">
+      <a className="site-logo" href="/" aria-label="墩墩和噗噗首页">
         <Image
           src="/media/logo-flat.png"
           width={64}
@@ -146,25 +145,25 @@ export default function SiteHeader({
           墩墩<span className="logo-and">&</span>噗噗
           <small>两只小可爱 · 原创 IP BY 拯</small>
         </span>
-      </Link>
+      </a>
       <nav className="site-nav" aria-label="主导航">
-        <Link href="/#duo">两位主角</Link>
-        <Link className="nav-travel" href="/travel" aria-current={active === 'travel' ? 'page' : undefined}>
+        <a href="/#duo">两位主角</a>
+        <a className="nav-travel" href="/travel" aria-current={active === 'travel' ? 'page' : undefined}>
           出逃档案 <span aria-hidden="true">↗</span>
-        </Link>
-        <Link href="/kv" aria-current={active === 'kv' ? 'page' : undefined}>
+        </a>
+        <a href="/kv" aria-current={active === 'kv' ? 'page' : undefined}>
           主视觉 KV<span className="nav-dot">21</span>
-        </Link>
-        <Link
+        </a>
+        <a
           href="/wallpapers"
           aria-current={active === 'wallpapers' ? 'page' : undefined}
         >
           手机壁纸<span className="nav-dot">24</span>
-        </Link>
-        <Link href="/#festival">节日放映</Link>
-        <Link href="/#moods">胡闹现场</Link>
-        <Link href="/#archive">可爱设计</Link>
-        <Link href="/#origin">创作灵感</Link>
+        </a>
+        <a href="/#festival">节日放映</a>
+        <a href="/#moods">胡闹现场</a>
+        <a href="/#archive">可爱设计</a>
+        <a href="/#origin">创作灵感</a>
       </nav>
       <div className="header-switches" data-silent>
         <button
