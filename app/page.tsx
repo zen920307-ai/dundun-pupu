@@ -1,9 +1,13 @@
 'use client';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import Image from './IPImage';
 import Universe from './Universe';
+import Origin from './Origin';
+import SiteHeader from './SiteHeader';
 import { INTRO_VIDEO } from './content';
+import { pokeLines, shuffledDeck } from './playful-content';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   ArrowUpRight,
@@ -13,37 +17,11 @@ import {
   Pause,
   Play,
   RotateCcw,
-  Plus,
 } from 'lucide-react';
 
-const memories = [
-  {
-    image: 'rain',
-    title: '雨很大。伞往你那边。',
-    note: '嘴上嫌弃，身体很诚实。',
-    no: '01 / 偏心现场',
-  },
-  {
-    image: 'cooking',
-    title: '正事没有，饭不能少。',
-    note: '一个负责捣乱，一个负责一起捣乱。',
-    no: '02 / 厨房事故',
-  },
-  {
-    image: 'moon',
-    title: '今天也一起，浪费月亮。',
-    note: '没什么大事。和你发呆算一件。',
-    no: '03 / 友情充电',
-  },
-  {
-    image: 'spring',
-    title: '出门？带上你就行。',
-    note: '目的地随便，搭子必须是你。',
-    no: '04 / 随机出走',
-  },
-];
 export default function Home() {
   const root = useRef<HTMLElement>(null);
+  const pokeDeck = useRef(shuffledDeck(pokeLines.length));
   const video = useRef<HTMLVideoElement>(null);
   const reaction = useRef<HTMLDivElement>(null);
   const manualPause = useRef(false);
@@ -125,32 +103,16 @@ export default function Home() {
       });
       gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) =>
         gsap.from(el, {
-          y: 75,
+          y: 35,
           opacity: 0,
           duration: 0.8,
           ease: 'power3.out',
           scrollTrigger: {
             trigger: el,
             start: 'top 90%',
-            toggleActions: 'play none none reverse',
+            toggleActions: 'play none none none',
           },
         }),
-      );
-      gsap.utils.toArray<HTMLElement>('.memory-photo').forEach((el) =>
-        gsap.fromTo(
-          el,
-          { scale: 1.12 },
-          {
-            scale: 1,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: el,
-              start: 'top bottom',
-              end: 'bottom top',
-              scrub: 1,
-            },
-          },
-        ),
       );
       gsap.from('.duo-art', {
         y: 120,
@@ -164,12 +126,6 @@ export default function Home() {
           toggleActions: 'play none none reverse',
         },
       });
-      gsap.to('.ticker-track', {
-        xPercent: -50,
-        duration: 22,
-        repeat: -1,
-        ease: 'none',
-      });
       gsap.to('.floating-stamp', {
         rotation: 13,
         y: -12,
@@ -180,10 +136,10 @@ export default function Home() {
       });
       gsap.utils.toArray<HTMLElement>('.archive-cutout').forEach((el, i) =>
         gsap.from(el, {
-          y: 90,
-          rotation: i % 2 ? 15 : -15,
-          scale: 0.8,
-          duration: 0.9,
+          y: 24,
+          rotation: i % 2 ? 2 : -2,
+          scale: 0.96,
+          duration: 0.7,
           ease: 'back.out(1.6)',
           scrollTrigger: {
             trigger: el,
@@ -192,48 +148,18 @@ export default function Home() {
           },
         }),
       );
-      const responsive = gsap.matchMedia();
-      responsive.add('(min-width: 851px)', () => {
-        gsap.to('.trip-track', {
-          x: () =>
-            -Math.max(
-              0,
-              (document.querySelector('.trip-track')?.scrollWidth ?? 0) -
-                window.innerWidth,
-            ),
-          ease: 'none',
-          scrollTrigger: {
-            trigger: '.trip-track',
-            start: 'top 12%',
-            end: () => '+=' + window.innerWidth * 1.6,
-            pin: window.innerWidth > 850,
-            scrub: 1,
-            invalidateOnRefresh: true,
-          },
-        });
-      });
-      return () => responsive.revert();
     }, root);
-    return () => ctx.revert();
+    let mounted = true;
+    void document.fonts.ready.then(() => {
+      if (mounted) ScrollTrigger.refresh();
+    });
+    return () => {
+      mounted = false;
+      ctx.revert();
+    };
   }, [motion]);
   const poke = () => {
-    const lines = [
-      '墩墩：你最好有事。',
-      '噗噗：有事！想和你玩！',
-      '墩墩：……就五分钟。',
-      '友情续费成功。永久有效。',
-      '噗噗：我刚才数了三朵云。',
-      '墩墩：这也值得汇报？',
-      '噗噗：值得！第四朵更像你！',
-      '墩墩：今天不营业。噗噗：那我来营业。',
-      '系统提示：搭子黏合度已超标。',
-      '警告：两只小可爱正在靠近。',
-      '墩墩：别碰帽子。噗噗：就碰一下！',
-      '噗噗：你看起来像一颗不开心的丸子。',
-      '墩墩：……陪你五分钟。噗噗：一百分钟！',
-      '今日成就：一起把时间浪费得很漂亮。',
-    ];
-    setLine(lines[Math.floor(Math.random() * lines.length)]);
+    setLine(pokeLines[pokeDeck.current()]);
     if (motion && reaction.current)
       gsap.fromTo(
         reaction.current,
@@ -248,30 +174,11 @@ export default function Home() {
       );
   };
   return (
-    <main ref={root}>
+    <main ref={root} data-motion={motion}>
       <a className="skip" href="#duo">
         跳到角色介绍
       </a>
-      <header className="navigation">
-        <a className="wordmark" href="#home">
-          墩墩<span>&</span>噗噗<i>ORIGINAL IP BY 拯</i>
-        </a>
-        <nav aria-label="主导航">
-          <a href="#duo">两位主角</a>
-          <a href="#moods">情绪现场</a>
-          <a href="#archive">可爱入侵</a>
-          <a href="#creator">
-            幕后那位 <ArrowUpRight size={16} />
-          </a>
-        </nav>
-        <button
-          className="motion-toggle"
-          onClick={() => setMotion(!motion)}
-          aria-pressed={motion}
-        >
-          动效 {motion ? 'ON' : 'OFF'}
-        </button>
-      </header>
+      <SiteHeader motion={motion} onMotionChange={() => setMotion(!motion)} />
       <section className="hero" id="home">
         <video
           ref={video}
@@ -314,7 +221,7 @@ export default function Home() {
             认识这两个家伙 <ArrowDown size={18} />
           </a>
         </div>
-        <div className="video-controls">
+        <div className="video-controls" data-silent>
           {needsStart && (
             <button
               className="sound-start"
@@ -382,10 +289,27 @@ export default function Home() {
       </section>
       <div className="ticker" aria-hidden="true">
         <div className="ticker-track">
-          {[0, 1].map((i) => (
-            <span key={i}>
-              没头脑 & 不高兴？ &nbsp; ✳ &nbsp; 是最好最好的朋友！ &nbsp; ✳
-              &nbsp; DUNDUN & PUPU &nbsp; ✳ &nbsp;{' '}
+          {[0, 1].map((copy) => (
+            <span className="ticker-copy" key={copy}>
+              {[
+                '没头脑 & 不高兴？',
+                '是最好最好的朋友！',
+                'DUNDUN & PUPU',
+                '不太正经，但超要好',
+                '一个不想营业，一个非要贴贴',
+                '允许摆烂 · 禁止硬撑',
+                '友情不限流量',
+                '全世界催你长大，我们陪你傻一下',
+                '今日待办：一起没事找事',
+                '噗噗批准了 · 墩墩：？',
+                '贴贴是刚需',
+                'EST. FRIENDS FOREVER',
+              ].map((bit) => (
+                <span className="ticker-bit" key={bit}>
+                  {bit}
+                  <i>✳</i>
+                </span>
+              ))}
             </span>
           ))}
         </div>
@@ -459,6 +383,20 @@ export default function Home() {
           </article>
         </div>
       </section>
+      <section className="travel-entry section" aria-labelledby="travel-entry-title">
+        <div className="travel-entry-copy reveal">
+          <span className="travel-label">2016 — 2026 / 好朋友出逃实录</span>
+          <h2 id="travel-entry-title">世界那么大。<br /><span>一起闯点祸。</span></h2>
+          <p>20 段旅程，一对最佳损友。<br />有白崖、有极光色的梦，还有一把死活打不开门的钥匙。</p>
+          <Link href="/travel" className="travel-cta">拆开出逃档案 <ArrowUpRight size={24} /></Link>
+          <span className="travel-entry-note">墩墩：丢脸的部分可以不写吗？<br />噗噗：已经加粗了。</span>
+        </div>
+        <Link href="/travel" className="travel-entry-art reveal" aria-label="查看全部 20 份出逃档案">
+          <Image src="/travel/英国伦敦-thumb.webp" width={480} height={720} alt="英国伦敦旅行海报" loading="lazy" />
+          <Image src="/travel/冰岛环岛-thumb.webp" width={480} height={640} alt="冰岛环岛旅行海报" loading="lazy" />
+          <span className="travel-entry-stamp">搭子不换<br />地图接着翻 ↗</span>
+        </Link>
+      </section>
       <section className="manifesto section">
         <span className="section-kicker reveal">
           FRIENDSHIP, BUT MAKE IT WEIRD.
@@ -487,122 +425,207 @@ export default function Home() {
         </span>
       </section>
       <Universe motion={motion} />
-      <section className="moments section" id="moments">
-        <Image
-          unoptimized
-          className="moments-sticker"
-          src="/media/keychain-sticker.png"
-          width={300}
-          height={320}
-          alt=""
-          aria-hidden="true"
-        />
+      <section className="world-portals section" id="explore">
         <div className="section-kicker reveal">
-          <span>06 / LITTLE THINGS, BIG MOODS</span>
-          <span>友情，没有正经剧本。</span>
+          <span>06 / MORE LITTLE WORLDS</span>
+          <span>可爱还有两个分会场。</span>
         </div>
-        <div className="moments-title reveal">
+        <div className="portal-heading reveal">
           <h2>
-            没什么大事。
+            还没玩够？
             <br />
-            <span>都是我们的事。</span>
+            <span>再开两扇门。</span>
           </h2>
           <p>
-            一些胡闹，一点偏心。
+            大脑洞，放大看。
             <br />
-            还有好多好多一起。
+            小快乐，随身带。
           </p>
         </div>
-        <div className="memory-grid">
-          {memories.map((m, i) => (
-            <article className={'memory memory-' + i + ' reveal'} key={m.image}>
-              <div className="photo-wrap">
+        <div className="portal-grid">
+          <Link className="portal portal-kv reveal" href="/kv">
+            <div className="portal-visual">
+              <Image
+                src="/gallery/kv/08.webp"
+                width={1672}
+                height={941}
+                alt="墩墩和噗噗的积木乐园主视觉"
+                loading="lazy"
+              />
+            </div>
+            <span className="portal-tag">21 张原创主视觉</span>
+            <h3>
+              脑洞巨幕厅 <ArrowUpRight size={30} />
+            </h3>
+            <p>今天开始，认真地不务正业。</p>
+          </Link>
+          <Link className="portal portal-wallpapers reveal" href="/wallpapers">
+            <div className="wp-fill" aria-hidden="true">
+              {[
+                '01',
+                '03',
+                '05',
+                '08',
+                '14',
+                '18',
+                '21',
+                '24',
+              ].map((id) => (
                 <Image
-                  unoptimized
-                  className="memory-photo"
-                  src={'/media/' + m.image + '.webp'}
-                  alt={m.title}
-                  width="1400"
-                  height="788"
+                  key={id}
+                  src={'/gallery/wallpapers/' + id + '-thumb.webp'}
+                  width={841}
+                  height={1870}
+                  alt=""
                   loading="lazy"
                 />
-              </div>
-              <div className="memory-caption">
-                <span>{m.no}</span>
-                <Plus aria-hidden="true" size={20} />
-              </div>
-              <h3>{m.title}</h3>
-              <p>{m.note}</p>
-            </article>
-          ))}
+              ))}
+            </div>
+            <span className="wp-tape" aria-hidden="true" />
+            <span className="wp-stamp">
+              掉了
+              <br />
+              请闪光
+            </span>
+            <div className="wp-board">
+              <figure className="wp-shot s1">
+                <Image
+                  src="/gallery/wallpapers/04-thumb.webp"
+                  width={841}
+                  height={1870}
+                  alt="涂鸦墙角手机壁纸"
+                  loading="lazy"
+                />
+              </figure>
+              <figure className="wp-shot s2">
+                <Image
+                  src="/gallery/wallpapers/07-thumb.webp"
+                  width={841}
+                  height={1870}
+                  alt="涂鸦贴贴手机壁纸"
+                  loading="lazy"
+                />
+              </figure>
+              <figure className="wp-shot s3">
+                <Image
+                  src="/gallery/wallpapers/12-thumb.webp"
+                  width={841}
+                  height={1870}
+                  alt="耳机里的墩墩和噗噗壁纸"
+                  loading="lazy"
+                />
+              </figure>
+              <Image
+                unoptimized
+                className="wp-buddy dundun"
+                src="/media/stickers/dundun-head.png"
+                width={200}
+                height={220}
+                alt=""
+              />
+              <Image
+                unoptimized
+                className="wp-buddy pupu"
+                src="/media/pupu-sticker.png"
+                width={140}
+                height={160}
+                alt=""
+              />
+              <span className="wp-note">
+                不是广告
+                <br />
+                是家属
+              </span>
+            </div>
+            <div className="portal-wallpaper-copy">
+              <span className="portal-tag">24 张 · 捡到请亮屏</span>
+              <h3>
+                锁屏搭子招领处 <ArrowUpRight size={28} />
+              </h3>
+              <p>谁的锁屏掉在这里了？先认领一只。</p>
+            </div>
+          </Link>
         </div>
       </section>
       <section className="creator" id="creator">
-        <Image
-          unoptimized
-          src="/media/designer.webp"
-          alt="设计师拯的三维卡通形象，在工作室里创作"
-          width="1600"
-          height="900"
-          loading="lazy"
-        />
-        <div className="creator-content reveal">
-          <span className="section-kicker">
-            07 / THE HUMAN BEHIND THE CHAOS
+        <div className="creator-inner">
+          <Image
+            unoptimized
+            className="creator-portrait"
+            src="/media/designer.webp"
+            alt="设计师拯的三维卡通形象，在工作室里创作"
+            width="1600"
+            height="900"
+            loading="lazy"
+          />
+          <div className="creator-content reveal">
+            <span className="section-kicker">
+              07 / THE HUMAN BEHIND THE CHAOS
+            </span>
+            <h2>
+              他俩负责闹。
+              <br />
+              我负责<span>创造。</span>
+            </h2>
+            <p className="creator-name">
+              你好，我是拯。
+              <ArrowUpRight size={34} />
+            </p>
+            <p>
+              墩墩和噗噗的原创设计师。
+              <br />
+              把一点无厘头，和很多很多陪伴，
+              <br />
+              装进两个毛茸茸的小家伙里。
+            </p>
+            <span className="signature">拯 / ZEN</span>
+          </div>
+          <Image
+            className="creator-mascot"
+            src="/media/dundun-sticker.png"
+            width={170}
+            height={190}
+            alt=""
+          />
+          <span className="creator-sticker">
+            幕后那位
+            <br />
+            终于出现了 ↗
           </span>
-          <h2>
-            他俩负责闹。
-            <br />
-            我负责<span>创造。</span>
-          </h2>
-          <p className="creator-name">
-            你好，我是拯。
-            <ArrowUpRight size={34} />
-          </p>
-          <p>
-            墩墩和噗噗的原创设计师。
-            <br />
-            把一点无厘头，和很多很多陪伴，
-            <br />
-            装进两个毛茸茸的小家伙里。
-          </p>
-          <span className="signature">拯 / ZEN</span>
         </div>
-        <span className="creator-sticker">
-          幕后那位
-          <br />
-          终于出现了 ↗
-        </span>
       </section>
+      <Origin motion={motion} />
       <footer>
-        <div className="footer-top">
-          <p>
-            今日待办：
-            <br />
-            <strong>
-              和好朋友，<span>一起没事找事。</span>
-            </strong>
-          </p>
-          <a href="#home" className="back-top" aria-label="返回顶部">
-            <ArrowUpRight size={35} />
-          </a>
-        </div>
-        <Image
-          unoptimized
-          className="peek"
-          src="/media/peek.png"
-          alt="墩墩和噗噗一起探头"
-          width="1024"
-          height="1024"
-          loading="lazy"
-        />
-        <div className="footer-brand">
-          DUNDUN<span>&</span>PUPU
-        </div>
-        <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} 墩墩和噗噗 · 原创 IP</span>
-          <span>DESIGNED WITH A LITTLE CHAOS. BY 拯</span>
-          <span>友情持续营业中 ●</span>
+        <div className="footer-inner">
+          <div className="footer-top">
+            <p>
+              今日待办：
+              <br />
+              <strong>
+                和好朋友，<span>一起没事找事。</span>
+              </strong>
+            </p>
+            <a href="#home" className="back-top" aria-label="返回顶部">
+              <ArrowUpRight size={35} />
+            </a>
+          </div>
+          <Image
+            unoptimized
+            className="peek"
+            src="/media/peek.png"
+            alt="墩墩和噗噗一起探头"
+            width="1024"
+            height="1024"
+            loading="lazy"
+          />
+          <div className="footer-brand">
+            DUNDUN<span>&</span>PUPU
+          </div>
+          <div className="footer-bottom">
+            <span>© {new Date().getFullYear()} 墩墩和噗噗 · 原创 IP</span>
+            <span>DESIGNED WITH A LITTLE CHAOS. BY 拯</span>
+            <span>友情持续营业中 ●</span>
+          </div>
         </div>
       </footer>
     </main>

@@ -1,9 +1,17 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
+import {
+  extraQuestions,
+  extraMissions,
+  shuffledDeck,
+  drawRound,
+} from './playful-content';
 import Image from './IPImage';
+import Sticker from './Sticker';
 import { ArrowRight, RotateCcw, Shuffle } from 'lucide-react';
 const questions = [
+  ...extraQuestions,
   {
     q: '好朋友说「我没事」。你会？',
     answers: ['嘴上说行，悄悄坐到旁边。', '直接贴过去：我有事，想抱你。'],
@@ -38,6 +46,7 @@ const questions = [
   },
 ];
 const missions = [
+  ...extraMissions,
   ['认真发呆三分钟', '不许想工作。想晚饭可以。'],
   ['给好朋友发一句废话', '比如：「我刚刚眨了一下眼。」'],
   ['把今天的小事夸大十倍', '喝到水了？恭喜征服一片海洋。'],
@@ -58,6 +67,9 @@ const missions = [
   ['给明天留一句废话', '明天的你会觉得今天很会安排。'],
 ];
 export default function Playground({ motion }: { motion: boolean }) {
+  const questionDeck = useRef(shuffledDeck(questions.length));
+  const missionDeck = useRef(shuffledDeck(missions.length, 0));
+  const [round, setRound] = useState([0, 1, 2]);
   const [answers, setAnswers] = useState<number[]>([]),
     [mission, setMission] = useState(0),
     [issued, setIssued] = useState(false);
@@ -69,21 +81,26 @@ export default function Playground({ motion }: { motion: boolean }) {
     },
     [],
   );
-  const finished = answers.length === questions.length;
+  useEffect(() => {
+    setRound(drawRound(questionDeck.current, 3));
+  }, []);
+  const finished = answers.length === round.length;
   const isPupu = answers.reduce((a, b) => a + b, 0) >= 2;
   const draw = () => {
-    setMission(
-      (v) =>
-        (v + 1 + Math.floor(Math.random() * (missions.length - 1))) %
-        missions.length,
-    );
+    setMission(missionDeck.current());
     setIssued(true);
     if (motion && ticket.current) {
       animation.current?.kill();
       animation.current = gsap.fromTo(
         ticket.current,
         { y: -35, rotation: -6, opacity: 0 },
-        { y: 0, rotation: 3, opacity: 1, duration: 0.6, ease: 'back.out(1.9)' },
+        {
+          y: 0,
+          rotation: -1,
+          opacity: 1,
+          duration: 0.6,
+          ease: 'back.out(1.9)',
+        },
       );
     }
   };
@@ -105,14 +122,10 @@ export default function Playground({ motion }: { motion: boolean }) {
           搭子鉴定处
         </span>
       </div>
-      <Image
-        unoptimized
+      <Sticker
         className="playground-sticker"
-        src="/media/dundun-sticker.png"
-        width={250}
-        height={280}
-        alt=""
-        aria-hidden="true"
+        src="/media/pillow-sticker.png"
+        label="戳戳趴着的墩墩抱枕"
       />
       <div className="playground-body">
         <div className="buddy-test reveal">
@@ -121,14 +134,14 @@ export default function Playground({ motion }: { motion: boolean }) {
             <span>{Math.min(answers.length + 1, 3)} / 3</span>
           </div>
           <div className="test-progress" aria-hidden="true">
-            {questions.map((_, i) => (
+            {round.map((_, i) => (
               <span key={i} className={answers.length > i ? 'done' : ''} />
             ))}
           </div>
           {!finished ? (
             <div className="question-area" aria-live="polite">
-              <h3>{questions[answers.length].q}</h3>
-              {questions[answers.length].answers.map((a, i) => (
+              <h3>{questions[round[answers.length]].q}</h3>
+              {questions[round[answers.length]].answers.map((a, i) => (
                 <button
                   className="quiz-answer"
                   key={a}
@@ -140,7 +153,7 @@ export default function Playground({ motion }: { motion: boolean }) {
                 </button>
               ))}
               <p className="test-footnote">
-                不用想太多，选第一反应。反正没有标准答案。
+                36 道题，每次聊 3 道。刷新换一批，胡闹没有标准答案。
               </p>
             </div>
           ) : (
@@ -167,7 +180,13 @@ export default function Playground({ motion }: { motion: boolean }) {
                     ? '你的喜欢，根本藏不住。好巧，朋友也很喜欢。'
                     : '看起来满不在乎，其实把朋友的事都偷偷记住。'}
                 </p>
-                <button className="quiz-retry" onClick={() => setAnswers([])}>
+                <button
+                  className="quiz-retry"
+                  onClick={() => {
+                    setRound(drawRound(questionDeck.current, 3));
+                    setAnswers([]);
+                  }}
+                >
                   <RotateCcw size={16} /> 我换个姿势再测一次
                 </button>
               </div>
@@ -197,7 +216,7 @@ export default function Playground({ motion }: { motion: boolean }) {
           <p className="machine-fineprint" aria-live="polite">
             {issued
               ? '任务已掉落。做不做都没关系，开心最重要。'
-              : '无截止日期。无绩效考核。只有快乐。'}
+              : '40 个胡闹任务 · 抽完一轮再重复。'}
           </p>
         </div>
       </div>

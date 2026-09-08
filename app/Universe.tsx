@@ -2,6 +2,14 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from './IPImage';
 import Playground from './Playground';
+import FestivalGallery from './FestivalGallery';
+import {
+  moodExtras,
+  fortunes,
+  chaosTags,
+  shuffledDeck,
+  drawRound,
+} from './playful-content';
 import gsap from 'gsap';
 import {
   ArrowUpRight,
@@ -19,7 +27,7 @@ import {
   DialogDescription,
   DialogClose,
 } from '@/components/ui/dialog';
-const moods = [
+const baseMoods = [
   {
     title: '拒绝内耗。选择外耗。',
     sub: '墩墩：别问。问就是在省电。',
@@ -80,53 +88,83 @@ const moods = [
 const archive = [
   [6, '数码小确幸', '手机也想有个搭子'],
   [37, '毛绒抱抱分队', '抱一下，问题明天再说'],
-  [25, '随身挂件', '出门必须带家属'],
+  [26, '随身挂件', '出门必须带家属'],
   [29, '穿上小快乐', '今天穿一点不正经'],
-  [19, '包袋出逃计划', '把可爱打包带走'],
-  [33, '桌面小同事', '不干活，只负责陪你'],
+  [21, '包袋出逃计划', '把可爱打包带走'],
+  [54, '桌面小同事', '不干活，只负责陪你'],
   [12, '限定礼盒', '一份装得下的偏心'],
   [27, '出行装备', '去哪里都一起'],
-  [20, '服饰系列', '让今天软乎一点'],
+  [30, '表情包分身', '废话不多，一张就懂'],
   [44, '亚克力小分身', '小小一个，存在感很大'],
   [28, '包装脑洞', '盒子里面，藏着好朋友'],
-  [54, '文具胡闹局', '上班也要偷偷可爱'],
+  [53, '零食补给站', '把今天的快乐拆开吃'],
 ] as const;
-const stickers = [
-  'dundun-sticker.png',
-  'pupu-sticker.png',
-  'keychain-sticker.png',
-  'duo.png',
-  'peek.png',
+const labels = [
+  '墩墩式省电',
+  '噗噗式快乐',
+  '嘴硬式贴贴',
+  '双人式摸鱼',
+  '社交式点头',
+  '云朵式放空',
+  '晚饭式认真',
+  '延期式长大',
 ];
-const scenes = [
-  {
-    image: 3,
-    title: '春天：一起慢吞吞。',
-    text: '今天的KPI：把春天坐穿。',
-    season: 'SPRING / 慢一点',
-  },
-  {
-    image: 24,
-    title: '月圆：脑袋空空也很圆满。',
-    text: '有些话不用讲，点心要分一半。',
-    season: 'MOONLIGHT / 黏一点',
-  },
-  {
-    image: 18,
-    title: '冬天：有你就冒热气。',
-    text: '锅里咕嘟，旁边噗噗。',
-    season: 'WINTER / 暖一点',
-  },
+const moods = [
+  ...baseMoods.map((m, i) => ({ ...m, label: labels[i] })),
+  ...moodExtras.map(([label, title, sub, tag, reply]) => ({
+    label,
+    title,
+    sub,
+    tag,
+    reply,
+    image: 0,
+  })),
 ];
+const moodStickers = [
+  '/media/stickers/mood-00.png',
+  '/media/dundun-sticker.png',
+  '/media/stickers/mood-01.png',
+  '/media/pupu-sticker.png',
+  '/media/stickers/mood-02.png',
+  '/media/stickers/dundun-head.png',
+  '/media/stickers/mood-03.png',
+  '/media/stickers/pupu-head.png',
+  '/media/stickers/mood-04.png',
+  '/media/stickers/dundun-sleep.png',
+  '/media/stickers/mood-05.png',
+  '/media/pillow-sticker.png',
+  '/media/stickers/mood-06.png',
+  '/media/stickers/dundun-blank.png',
+  '/media/stickers/mood-07.png',
+  '/media/keychain-sticker.png',
+  '/media/stickers/mood-08.png',
+  '/media/stickers/dundun-sad.png',
+  '/media/stickers/mood-09.png',
+  '/media/stickers/dundun-huh.png',
+  '/media/stickers/mood-10.png',
+  '/media/stickers/dundun-yawn.png',
+  '/media/stickers/mood-11.png',
+] as const;
+const pickTags = (draw: () => number) =>
+  drawRound(draw, 8).map((i) => chaosTags[i]);
+const pileFor = (mood: number) => {
+  const n = moodStickers.length;
+  return [0, 1, 2, 3].map((i) => moodStickers[(mood + i * 6) % n]);
+};
 export default function Universe({ motion }: { motion: boolean }) {
   const [mood, setMood] = useState(0),
     [active, setActive] = useState<number | null>(null),
     [chaos, setChaos] = useState(false),
-    [fortune, setFortune] = useState('今天适合：和好朋友一起虚度。');
+    [fortune, setFortune] = useState('今天适合：和好朋友一起虚度。'),
+    [tags, setTags] = useState<string[]>(() => [...chaosTags.slice(0, 8)]);
+  const moodDeck = useRef(shuffledDeck(moods.length, 0));
+  const fortuneDeck = useRef(shuffledDeck(fortunes.length));
+  const tagDeck = useRef(shuffledDeck(chaosTags.length));
   const board = useRef<HTMLDivElement>(null),
     moodTween = useRef<gsap.core.Timeline | null>(null),
     burst = useRef<HTMLDivElement>(null),
     burstTween = useRef<gsap.core.Tween | null>(null);
+  const skipTagMotion = useRef(true);
   useEffect(
     () => () => {
       moodTween.current?.kill();
@@ -134,6 +172,9 @@ export default function Universe({ motion }: { motion: boolean }) {
     },
     [],
   );
+  useEffect(() => {
+    setTags(pickTags(tagDeck.current));
+  }, []);
   useEffect(() => {
     if (!motion) {
       moodTween.current?.kill();
@@ -163,31 +204,30 @@ export default function Universe({ motion }: { motion: boolean }) {
   };
   const goNonsense = () => {
     setChaos((v) => !v);
-    const fortunes = [
-      '今天适合：一本正经地胡说八道。',
-      '友情提醒：你的可爱已超速。',
-      '今日宜：和好朋友集体掉线。',
-      '宇宙回复：没关系，先吃一口。',
-      '今日成就：什么都没干，但一起。',
-    ];
-    setFortune(fortunes[Math.floor(Math.random() * fortunes.length)]);
-    if (motion && burst.current) {
-      burstTween.current?.kill();
-      burstTween.current = gsap.fromTo(
-        burst.current.children,
-        { y: 80, opacity: 0, scale: 0.5 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          rotation: () => gsap.utils.random(-18, 18),
-          stagger: 0.06,
-          duration: 0.7,
-          ease: 'elastic.out(1,.55)',
-        },
-      );
-    }
+    setFortune(fortunes[fortuneDeck.current()]);
+    setTags(pickTags(tagDeck.current));
   };
+  useEffect(() => {
+    if (skipTagMotion.current) {
+      skipTagMotion.current = false;
+      return;
+    }
+    if (!motion || !burst.current) return;
+    burstTween.current?.kill();
+    burstTween.current = gsap.fromTo(
+      burst.current.children,
+      { y: 80, opacity: 0, scale: 0.5 },
+      {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        rotation: () => gsap.utils.random(-18, 18),
+        stagger: 0.06,
+        duration: 0.7,
+        ease: 'elastic.out(1,.55)',
+      },
+    );
+  }, [tags, motion]);
   const chosen = active === null ? null : archive[active];
   return (
     <>
@@ -211,49 +251,48 @@ export default function Universe({ motion }: { motion: boolean }) {
         <div className="mood-layout">
           <div className="mood-menu reveal">
             <span className="tiny-label">请选择你的精神状态 ↓</span>
-            {[
-              '墩墩式省电',
-              '噗噗式快乐',
-              '嘴硬式贴贴',
-              '双人式摸鱼',
-              '云朵式放空',
-              '社交式点头',
-              '晚饭式认真',
-              '延期式长大',
-            ].map((m, i) => (
+            {moods.slice(0, 8).map((m, i) => (
               <button
-                key={m}
+                key={m.label}
                 className={mood === i ? 'mood-choice selected' : 'mood-choice'}
                 aria-pressed={mood === i}
                 onClick={() => choose(i)}
               >
                 <span>0{i + 1}</span>
-                {m}
+                {m.label}
                 <ArrowUpRight size={22} />
               </button>
             ))}
             <button
               className="random-mood"
-              onClick={() =>
-                choose((mood + 1 + Math.floor(Math.random() * 3)) % 4)
-              }
+              onClick={() => choose(moodDeck.current())}
             >
-              <Shuffle size={18} /> 我也不知道，随机发疯
+              <Shuffle size={18} /> 拆一个情绪盲盒 · 24 款
             </button>
           </div>
           <div className="mood-display reveal" ref={board}>
-            <div className="mood-sheet">
-              <Image
-                unoptimized
-                src={'/media/' + stickers[mood % stickers.length]}
-                width={990}
-                height={1400}
-                alt={moods[mood].title + '角色贴纸'}
-                loading="lazy"
-              />
+            <div
+              className="mood-pile"
+              data-spread={mood % 6}
+              aria-hidden="true"
+            >
+              {pileFor(mood).map((src, i) => (
+                <span className={'mood-sticker s' + i} key={src + i}>
+                  <Image
+                    unoptimized
+                    src={src}
+                    width={480}
+                    height={520}
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+              ))}
             </div>
             <div className="mood-report" aria-live="polite">
-              <span className="mood-tag">{moods[mood].tag}</span>
+              <span className="mood-tag">
+                {moods[mood].label} / {moods[mood].tag}
+              </span>
               <h3>{moods[mood].title}</h3>
               <p>{moods[mood].sub}</p>
               <span className="speech-reply">{moods[mood].reply}</span>
@@ -261,49 +300,7 @@ export default function Universe({ motion }: { motion: boolean }) {
           </div>
         </div>
       </section>
-      <section className="friendship-trip" id="trip">
-        <div className="trip-heading section">
-          <span className="section-kicker reveal">
-            03 / SAME FRIEND. DIFFERENT NONSENSE.
-          </span>
-          <h2 className="reveal">
-            季节随便换。
-            <br />
-            <span>搭子不换。</span>
-          </h2>
-          <p className="reveal">
-            春天、月亮、热乎乎的冬天。
-            <br />
-            去哪儿不重要，重要的是「我们」。
-          </p>
-        </div>
-        <div className="trip-track">
-          {scenes.map((s, i) => (
-            <article className={'trip-panel trip-panel-' + i} key={s.image}>
-              <Image
-                unoptimized
-                src={'/media/archive-' + s.image + '.webp'}
-                width={1400}
-                height={788}
-                alt={s.title}
-                loading="lazy"
-              />
-              <div className="trip-panel-shade" />
-              <span className="trip-season">{s.season}</span>
-              <div className="trip-copy">
-                <span className="trip-index">0{i + 1}</span>
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
-              </div>
-              <span className="trip-sticker">
-                无所事事
-                <br />
-                但在一起
-              </span>
-            </article>
-          ))}
-        </div>
-      </section>
+      <FestivalGallery motion={motion} />
       <Playground motion={motion} />
       <section className={'nonsense section ' + (chaos ? 'nonsense-on' : '')}>
         <div className="section-kicker reveal">
@@ -311,6 +308,13 @@ export default function Universe({ motion }: { motion: boolean }) {
           <span>友情提示：本按钮没有正经用途。</span>
         </div>
         <div className="nonsense-content">
+          <Image
+            className="nonsense-mascot"
+            src="/media/pupu-sticker.png"
+            width={170}
+            height={190}
+            alt=""
+          />
           <div className="reveal">
             <h2>
               都看到这里了。
@@ -334,14 +338,8 @@ export default function Universe({ motion }: { motion: boolean }) {
           </button>
         </div>
         <div className="chaos-burst" ref={burst} aria-hidden="true">
-          {[
-            '班可以上 / 脑子先下班',
-            '严肃暂停！',
-            '噗噗批准了',
-            '墩墩：？',
-            '友情不限流量',
-          ].map((s) => (
-            <span key={s}>{s}</span>
+          {tags.map((s, i) => (
+            <span key={s + i}>{s}</span>
           ))}
         </div>
         <p className="fortune" aria-live="polite">
@@ -354,6 +352,13 @@ export default function Universe({ motion }: { motion: boolean }) {
           <span>注意：他们已经无处不在。</span>
         </div>
         <div className="archive-heading reveal">
+          <Image
+            className="archive-mascot"
+            src="/media/keychain-sticker.png"
+            width={180}
+            height={200}
+            alt=""
+          />
           <h2>
             从你的怀里，
             <br />
@@ -364,15 +369,10 @@ export default function Universe({ motion }: { motion: boolean }) {
             <br />
             这两个家伙，真的很会找地方待着。
             <br />
-            <span>戳任意小家伙，打开对应设计稿 ↗</span>
+            <span>12 份不同脑洞 · 点开看完整设计稿 ↗</span>
           </p>
         </div>
         <div className="archive-grid">
-          <span className="wall-scribble" aria-hidden="true">
-            到处都是我们。
-            <br />
-            你被可爱包围了 ↘
-          </span>
           {archive.map(([id, title, note], i) => (
             <button
               className={'archive-card archive-card-' + i + ' reveal'}
@@ -388,15 +388,6 @@ export default function Universe({ motion }: { motion: boolean }) {
                   height={1400}
                   alt={title}
                   loading="lazy"
-                />
-                <Image
-                  unoptimized
-                  className="archive-sticker"
-                  src={'/media/' + stickers[i % stickers.length]}
-                  width={180}
-                  height={180}
-                  alt=""
-                  aria-hidden="true"
                 />
                 <span className="archive-open">
                   <Plus size={23} />
