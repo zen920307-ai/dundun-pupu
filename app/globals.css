@@ -343,7 +343,7 @@ h1 span {
   line-height: 1.3;
   will-change: transform;
   backface-visibility: hidden;
-  animation: ticker-scroll 46s linear infinite;
+  animation: ticker-scroll 150s linear infinite;
 }
 .ticker-copy {
   display: flex;

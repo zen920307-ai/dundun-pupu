@@ -26,21 +26,11 @@ export default function Home() {
   const manualPause = useRef(false);
   const heroVisible = useRef(true);
   const [needsStart, setNeedsStart] = useState(false);
-  const [muted, setMuted] = useState(false),
+  const [muted, setMuted] = useState(true),
     [playing, setPlaying] = useState(false),
     [motion, setMotion] = useState(true),
     [line, setLine] = useState('别戳。再戳……也行。');
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    const media = matchMedia('(prefers-reduced-motion: reduce)');
-    const initial = requestAnimationFrame(() => setMotion(!media.matches));
-    const listener = () => setMotion(!media.matches);
-    media.addEventListener('change', listener);
-    return () => {
-      cancelAnimationFrame(initial);
-      media.removeEventListener('change', listener);
-    };
-  }, []);
+  useEffect(() => { gsap.registerPlugin(ScrollTrigger); }, []);
   useEffect(() => {
     const el = video.current;
     if (!el) return;
@@ -81,26 +71,6 @@ export default function Home() {
   useEffect(() => {
     if (!motion) return;
     const ctx = gsap.context(() => {
-      gsap.set('.hero-copy', { clearProps: 'transform,opacity' });
-      gsap.from('.intro-in', {
-        y: 65,
-        opacity: 0,
-        rotation: 3,
-        duration: 0.9,
-        stagger: 0.13,
-        ease: 'power3.out',
-      });
-      gsap.to('.hero-copy', {
-        yPercent: 28,
-        opacity: 0.1,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '.hero',
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true,
-        },
-      });
       gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) =>
         gsap.from(el, {
           y: 35,
@@ -201,23 +171,23 @@ export default function Home() {
           />
         </video>
         <div className="hero-shade" />
-        <div className="hero-top intro-in">
+        <div className="hero-top">
           <span>两只小可爱 · 一个小宇宙</span>
           <span>EST. FRIENDS FOREVER ↗</span>
         </div>
         <div className="hero-copy">
-          <p className="eyebrow intro-in">DUNDUN & PUPU</p>
-          <h1 className="intro-in">
+          <p className="eyebrow">DUNDUN & PUPU</p>
+          <h1>
             不太正经。
             <br />
             <span>但超要好。</span>
           </h1>
-          <p className="hero-desc intro-in">
+          <p className="hero-desc">
             一个不想营业，一个非要贴贴。
             <br />
             欢迎误入墩墩和噗噗的胡闹现场。
           </p>
-          <a className="pill orange intro-in" href="#duo">
+          <a className="pill orange" href="#duo">
             认识这两个家伙 <ArrowDown size={18} />
           </a>
         </div>
