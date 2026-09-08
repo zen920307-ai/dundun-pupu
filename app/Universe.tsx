@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Image from './IPImage';
+import Sticker from './Sticker';
+import { soundCue } from './sound';
 import Playground from './Playground';
 import FestivalGallery from './FestivalGallery';
 import {
@@ -121,42 +123,20 @@ const moods = [
   })),
 ];
 const moodStickers = [
-  '/media/stickers/mood-00.png',
-  '/media/dundun-sticker.png',
-  '/media/stickers/mood-01.png',
-  '/media/pupu-sticker.png',
-  '/media/stickers/mood-02.png',
-  '/media/stickers/dundun-head.png',
-  '/media/stickers/mood-03.png',
-  '/media/stickers/pupu-head.png',
-  '/media/stickers/mood-04.png',
-  '/media/stickers/dundun-sleep.png',
-  '/media/stickers/mood-05.png',
-  '/media/pillow-sticker.png',
-  '/media/stickers/mood-06.png',
-  '/media/stickers/dundun-blank.png',
-  '/media/stickers/mood-07.png',
-  '/media/keychain-sticker.png',
-  '/media/stickers/mood-08.png',
-  '/media/stickers/dundun-sad.png',
-  '/media/stickers/mood-09.png',
-  '/media/stickers/dundun-huh.png',
-  '/media/stickers/mood-10.png',
-  '/media/stickers/dundun-yawn.png',
-  '/media/stickers/mood-11.png',
+  { src: '/media/dundun-sticker.png', name: '墩墩', caption: '省电担当' },
+  { src: '/media/pupu-sticker.png', name: '噗噗', caption: '快乐担当' },
+  { src: '/media/pillow-sticker.png', name: '趴趴墩墩', caption: '先躺为敬' },
+  { src: '/media/keychain-sticker.png', name: '贴贴搭子', caption: '友情挂件' },
 ] as const;
 const pickTags = (draw: () => number) =>
   drawRound(draw, 8).map((i) => chaosTags[i]);
-const pileFor = (mood: number) => {
-  const n = moodStickers.length;
-  return [0, 1, 2, 3].map((i) => moodStickers[(mood + i * 6) % n]);
-};
 export default function Universe({ motion }: { motion: boolean }) {
   const [mood, setMood] = useState(0),
     [active, setActive] = useState<number | null>(null),
     [chaos, setChaos] = useState(false),
     [fortune, setFortune] = useState('今天适合：和好朋友一起虚度。'),
-    [tags, setTags] = useState<string[]>(() => [...chaosTags.slice(0, 8)]);
+    [tags, setTags] = useState<string[]>(() => chaosTags.slice(0, 8));
+  const [drawId, setDrawId] = useState(0);
   const moodDeck = useRef(shuffledDeck(moods.length, 0));
   const fortuneDeck = useRef(shuffledDeck(fortunes.length));
   const tagDeck = useRef(shuffledDeck(chaosTags.length));
@@ -184,24 +164,22 @@ export default function Universe({ motion }: { motion: boolean }) {
     }
   }, [motion]);
   const choose = (next: number) => {
-    moodTween.current?.kill();
-    if (!motion || !board.current) {
-      setMood(next);
+    setMood(next);
+    setDrawId(v => v + 1);
+  };
+  useEffect(() => {
+    if (!drawId || !board.current) return;
+    if (!motion || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      soundCue('reveal');
       return;
     }
-    moodTween.current = gsap
-      .timeline()
-      .to(board.current, { x: -25, rotation: -2, opacity: 0, duration: 0.18 })
-      .call(() => setMood(next))
-      .set(board.current, { x: 35, rotation: 3 })
-      .to(board.current, {
-        x: 0,
-        rotation: 0,
-        opacity: 1,
-        duration: 0.55,
-        ease: 'back.out(1.6)',
-      });
-  };
+    const ctx = gsap.context(() => {
+      moodTween.current = gsap.timeline({ onComplete: () => soundCue('reveal') })
+        .fromTo('.mood-toy', { y: 38, scale: .75, opacity: 0 }, { y: 0, scale: 1, opacity: 1, stagger: .065, duration: .65, ease: 'back.out(2)' })
+        .fromTo('.mood-report > *', { y: 14, opacity: 0 }, { y: 0, opacity: 1, stagger: .055, duration: .35 }, .22);
+    }, board);
+    return () => ctx.revert();
+  }, [drawId, motion]);
   const goNonsense = () => {
     setChaos((v) => !v);
     setFortune(fortunes[fortuneDeck.current()]);
@@ -265,29 +243,26 @@ export default function Universe({ motion }: { motion: boolean }) {
             ))}
             <button
               className="random-mood"
-              onClick={() => choose(moodDeck.current())}
+              onClick={() => {
+                let next = moodDeck.current();
+                while (next === mood) next = moodDeck.current();
+                choose(next);
+              }}
             >
               <Shuffle size={18} /> 拆一个情绪盲盒 · 24 款
             </button>
           </div>
           <div className="mood-display reveal" ref={board}>
-            <div
-              className="mood-pile"
-              data-spread={mood % 6}
-              aria-hidden="true"
-            >
-              {pileFor(mood).map((src, i) => (
-                <span className={'mood-sticker s' + i} key={src + i}>
-                  <Image
-                    unoptimized
-                    src={src}
-                    width={480}
-                    height={520}
-                    alt=""
-                    loading="lazy"
-                  />
-                </span>
+            <div className="mood-issue"><span>情绪收容所 / MOOD CLUB</span><span>NO. {String(mood + 1).padStart(2, '0')} / 24</span></div>
+            <div className="mood-toy-stage">
+              <span className="mood-stage-word" aria-hidden="true">MOOD!</span>
+              {moodStickers.map((item, i) => (
+                <div className={'mood-toy toy-' + i} key={item.src}>
+                  <Sticker className="mood-collectible" src={item.src} label={'戳戳' + item.name} />
+                  <span className="toy-caption">{item.caption}<span>0{i + 1}</span></span>
+                </div>
               ))}
+              <span className="mood-stage-note">戳一下，每只都有小脾气 ↗</span>
             </div>
             <div className="mood-report" aria-live="polite">
               <span className="mood-tag">

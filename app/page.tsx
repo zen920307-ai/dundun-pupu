@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import Image from './IPImage';
 import Universe from './Universe';
+import ExperienceMotion from './ExperienceMotion';
 import Origin from './Origin';
 import SiteHeader from './SiteHeader';
 import { INTRO_VIDEO } from './content';
@@ -26,11 +27,20 @@ export default function Home() {
   const manualPause = useRef(false);
   const heroVisible = useRef(true);
   const [needsStart, setNeedsStart] = useState(false);
-  const [muted, setMuted] = useState(true),
+  const [muted, setMuted] = useState(false),
     [playing, setPlaying] = useState(false),
     [motion, setMotion] = useState(true),
     [line, setLine] = useState('别戳。再戳……也行。');
-  useEffect(() => { gsap.registerPlugin(ScrollTrigger); }, []);
+  const [quality, setQuality] = useState<'enhanced' | 'original'>('enhanced');
+  const restoreTime = useRef(0);
+  const resumeAfterQuality = useRef(false);
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    const preference = matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setMotion(!preference.matches);
+    sync(); preference.addEventListener('change', sync);
+    return () => preference.removeEventListener('change', sync);
+  }, []);
   useEffect(() => {
     const el = video.current;
     if (!el) return;
@@ -69,7 +79,7 @@ export default function Home() {
     };
   }, []);
   useEffect(() => {
-    if (!motion) return;
+    if (!motion || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const ctx = gsap.context(() => {
       gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) =>
         gsap.from(el, {
@@ -145,6 +155,7 @@ export default function Home() {
   };
   return (
     <main ref={root} data-motion={motion}>
+      <ExperienceMotion enabled={motion} />
       <a className="skip" href="#duo">
         跳到角色介绍
       </a>
@@ -153,8 +164,24 @@ export default function Home() {
         <video
           ref={video}
           className="hero-video"
-          src={INTRO_VIDEO.src}
+          src={quality === 'enhanced' ? INTRO_VIDEO.src : INTRO_VIDEO.original}
+          onLoadedMetadata={() => {
+            const el = video.current;
+            if (!el) return;
+            el.currentTime = Math.min(restoreTime.current, el.duration || 0);
+            if (resumeAfterQuality.current && heroVisible.current && !document.hidden) {
+              void el.play().catch(() => setNeedsStart(true));
+            }
+            resumeAfterQuality.current = false;
+          }}
           poster={INTRO_VIDEO.poster}
+          onError={() => {
+            if (quality === 'enhanced') {
+              restoreTime.current = video.current?.currentTime ?? 0;
+              resumeAfterQuality.current = playing;
+              setQuality('original');
+            }
+          }}
           muted={muted}
           loop
           playsInline
@@ -192,6 +219,17 @@ export default function Home() {
           </a>
         </div>
         <div className="video-controls" data-silent>
+          <label className="video-quality">
+            <span className="sr-only">视频画质</span>
+            <select aria-label="视频画质" value={quality} onChange={e => {
+              restoreTime.current = video.current?.currentTime ?? 0;
+              resumeAfterQuality.current = playing;
+              setQuality(e.target.value as 'enhanced' | 'original');
+            }}>
+              <option value="enhanced">1080p · 增强</option>
+              <option value="original">720p · 高清</option>
+            </select>
+          </label>
           {needsStart && (
             <button
               className="sound-start"

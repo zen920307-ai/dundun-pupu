@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import './collections.css';
 import './travel.css';
+import './polish.css';
 import HashController from './HashController';
 export const metadata: Metadata = {
   title: '墩墩和噗噗 — 不太正经，但超要好。',

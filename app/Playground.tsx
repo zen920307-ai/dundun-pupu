@@ -8,6 +8,7 @@ import {
   drawRound,
 } from './playful-content';
 import Image from './IPImage';
+import { soundCue } from './sound';
 import Sticker from './Sticker';
 import { ArrowRight, RotateCcw, Shuffle } from 'lucide-react';
 const questions = [
@@ -86,10 +87,13 @@ export default function Playground({ motion }: { motion: boolean }) {
   }, []);
   const finished = answers.length === round.length;
   const isPupu = answers.reduce((a, b) => a + b, 0) >= 2;
+  useEffect(() => {
+    if (finished) soundCue('success');
+  }, [finished]);
   const draw = () => {
     setMission(missionDeck.current());
     setIssued(true);
-    if (motion && ticket.current) {
+    if (motion && !matchMedia('(prefers-reduced-motion: reduce)').matches && ticket.current) {
       animation.current?.kill();
       animation.current = gsap.fromTo(
         ticket.current,
@@ -139,7 +143,7 @@ export default function Playground({ motion }: { motion: boolean }) {
             ))}
           </div>
           {!finished ? (
-            <div className="question-area" aria-live="polite">
+            <div className="question-area" key={round[answers.length]} aria-live="polite">
               <h3>{questions[round[answers.length]].q}</h3>
               {questions[round[answers.length]].answers.map((a, i) => (
                 <button

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Image from './IPImage';
+import { playSound, type SoundKind } from './sound';
 import { Volume2, VolumeX, Sparkles, Pause } from 'lucide-react';
 
 export default function SiteHeader({
@@ -25,50 +26,13 @@ export default function SiteHeader({
     soundRef.current = stored;
     const frame = requestAnimationFrame(() => setSound(stored));
     let lastHover = 0;
-    const play = (kind: 'hover' | 'pop' | 'magic') => {
+    let lastSound = 0;
+    const play = (kind: SoundKind) => {
       const ctx = audio.current;
-      if (
-        !soundRef.current ||
-        !ctx ||
-        ctx.state !== 'running' ||
-        document.hidden
-      )
-        return;
-      const now = ctx.currentTime;
-      const count = kind === 'magic' ? 3 : kind === 'pop' ? 2 : 1;
-      for (let i = 0; i < count; i++) {
-        const osc = ctx.createOscillator(),
-          gain = ctx.createGain();
-        const start = now + i * 0.065,
-          duration = kind === 'hover' ? 0.075 : 0.14;
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(
-          (kind === 'hover' ? 680 : 520) * (1 + i * 0.32),
-          start,
-        );
-        osc.frequency.exponentialRampToValueAtTime(
-          (kind === 'hover' ? 940 : 1040) * (1 + i * 0.16),
-          start + 0.03,
-        );
-        osc.frequency.exponentialRampToValueAtTime(
-          400 + i * 160,
-          start + duration,
-        );
-        gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.exponentialRampToValueAtTime(
-          kind === 'hover' ? 0.018 : 0.04,
-          start + 0.008,
-        );
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + duration + 0.015);
-        osc.onended = () => {
-          osc.disconnect();
-          gain.disconnect();
-        };
-      }
+      if (!soundRef.current || !ctx || ctx.state !== 'running' || document.hidden) return;
+      if (performance.now() - lastSound < 45) return;
+      lastSound = performance.now();
+      playSound(ctx, kind);
     };
     const unlock = () => {
       if (!soundRef.current) return;
@@ -84,11 +48,14 @@ export default function SiteHeader({
       const target = (event.target as Element).closest('button,a');
       if (!target || target.closest('[data-silent]')) return;
       unlock();
-      play(
-        target.matches('.random-mood,.mission-button,.chaos-button')
-          ? 'magic'
-          : 'pop',
-      );
+      if (target.hasAttribute('data-cue')) return;
+      const kind: SoundKind = target.matches('.chaos-button') ? 'chaos'
+        : target.matches('.random-mood') ? 'draw'
+        : target.matches('.mission-button') ? 'paper'
+        : target.matches('.sticker-widget,.duo-button') ? 'squish'
+        : target.matches('.quiz-answer') ? 'answer'
+        : target.matches('.archive-card,.portal,.trip-open') ? 'navigate' : 'pop';
+      play(kind);
     };
     const hover = (event: PointerEvent) => {
       if (event.pointerType !== 'mouse' || performance.now() - lastHover < 160)
@@ -104,12 +71,15 @@ export default function SiteHeader({
       lastHover = performance.now();
       play('hover');
     };
+    const cue = (event: Event) => play((event as CustomEvent<SoundKind>).detail);
     document.addEventListener('pointerdown', unlock);
+    window.addEventListener('duo-sound', cue);
     document.addEventListener('keydown', unlock);
     document.addEventListener('click', click);
     document.addEventListener('pointerover', hover);
     return () => {
       cancelAnimationFrame(frame);
+      window.removeEventListener('duo-sound', cue);
       document.removeEventListener('pointerdown', unlock);
       document.removeEventListener('keydown', unlock);
       document.removeEventListener('click', click);
@@ -129,7 +99,13 @@ export default function SiteHeader({
       /* Optional preference persistence. */
     }
     if (!next && audio.current?.state === 'running')
-      void audio.current.suspend();
+      void audio.current.suspend().catch(() => {});
+    if (next) {
+      try {
+        audio.current ??= new AudioContext();
+        void audio.current.resume().then(() => { if (soundRef.current && audio.current) playSound(audio.current, 'reveal'); }).catch(() => {});
+      } catch { /* Audio is optional. */ }
+    }
   };
   return (
     <header className="site-header">
