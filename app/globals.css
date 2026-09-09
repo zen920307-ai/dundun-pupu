@@ -1468,14 +1468,18 @@ h1 span {
   font-size: 16px;
 }
 .art-dialog {
-  position: fixed !important;
-  inset: 0 !important;
-  margin: auto !important;
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  margin: 0 !important;
   transform: none !important;
   translate: none !important;
   width: min(92vw, 1080px) !important;
   max-width: 1080px !important;
-  height: max-content !important;
+  height: auto !important;
   max-height: 94svh;
   z-index: 60;
   padding: 22px !important;
@@ -1487,6 +1491,16 @@ h1 span {
   border-radius: 14px !important;
   overflow: auto;
   box-shadow: 10px 12px 0 #0005;
+}
+[data-slot='dialog-center'] {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  pointer-events: none;
 }
 [data-slot='dialog-overlay'] {
   position: fixed;
