@@ -1469,14 +1469,13 @@ h1 span {
 }
 .art-dialog {
   position: fixed !important;
-  left: 50% !important;
-  top: 50% !important;
-  right: auto !important;
-  bottom: auto !important;
+  inset: 0 !important;
+  margin: auto !important;
   transform: none !important;
-  translate: -50% -50% !important;
+  translate: none !important;
   width: min(92vw, 1080px) !important;
   max-width: 1080px !important;
+  height: max-content !important;
   max-height: 94svh;
   z-index: 60;
   padding: 22px !important;
@@ -2046,8 +2045,8 @@ footer {
 .footer-brand {
   font-family: 'Duo Chubby', 'Duo Happy', system-ui, sans-serif;
   font-weight: 800;
-  letter-spacing: 0.12em;
-  margin-right: -0.12em;
+  letter-spacing: 0.16em;
+  margin-right: -0.16em;
   -webkit-text-stroke: 2.4px currentColor;
   paint-order: stroke fill;
   font-size: clamp(40px, 9.4vw, 146px);

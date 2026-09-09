@@ -66,5 +66,10 @@ try {
   if (!existsSync(join(OUT, 'CNAME')))
     writeFileSync(join(OUT, 'CNAME'), 'dun.zenslab.top\n');
 } finally {
-  wrangler.kill();
+  wrangler.kill('SIGTERM');
+  if (wrangler.pid && process.platform === 'win32') {
+    spawn('taskkill', ['/pid', String(wrangler.pid), '/T', '/F'], {
+      stdio: 'ignore',
+    });
+  }
 }

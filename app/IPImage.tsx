@@ -23,6 +23,7 @@ export default function IPImage(props: ImageProps) {
     <NextImage
       {...props}
       src={src}
+      unoptimized
       onError={(event) => {
         if (source) setFailedSource(source);
         props.onError?.(event);
