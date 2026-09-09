@@ -14,24 +14,19 @@ export default function TravelJournal() {
   const [lightbox, setLightbox] = useState<{ src: string; place: string; date: string } | null>(null);
 
   useEffect(() => {
-    const media = matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setMotion(!media.matches);
-    const frame = requestAnimationFrame(update);
-    media.addEventListener('change', update);
-    return () => { cancelAnimationFrame(frame); media.removeEventListener('change', update); };
+    // 动效默认开，不受系统 prefers-reduced-motion 影响；关闭只走页头开关（data-motion）
   }, []);
   useEffect(() => {
     if (!motion) return;
     gsap.registerPlugin(ScrollTrigger);
-    const mm = gsap.matchMedia();
-    mm.add('(prefers-reduced-motion: no-preference)', () => {
+    const ctx = gsap.context(() => {
       gsap.from('.travel-intro', { y: 36, opacity: 0, stagger: .12, duration: .8, ease: 'power3.out' });
       gsap.from('.travel-hero-posters', { y: 50, rotation: 4, opacity: 0, duration: 1, ease: 'power3.out' });
       gsap.utils.toArray<HTMLElement>('.trip-card').forEach(el => {
         gsap.from(el, { y: 30, opacity: 0, duration: .65, scrollTrigger: { trigger: el, start: 'top 95%', once: true } });
       });
     }, root);
-    return () => mm.revert();
+    return () => ctx.revert();
   }, [motion]);
 
   const closeLightbox = useCallback(() => lightboxRef.current?.close(), []);

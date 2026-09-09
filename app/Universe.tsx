@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from './IPImage';
 import Sticker from './Sticker';
 import { soundCue } from './sound';
+import { downloadAsPng } from './download';
 import Playground from './Playground';
 import FestivalGallery from './FestivalGallery';
 import {
@@ -14,9 +15,9 @@ import {
 } from './playful-content';
 import gsap from 'gsap';
 import {
-  ArrowUpRight,
   ArrowLeft,
   ArrowRight,
+  Download,
   Shuffle,
   X,
   Zap,
@@ -122,12 +123,48 @@ const moods = [
     image: 0,
   })),
 ];
-const moodStickers = [
-  { src: '/media/dundun-sticker.png', name: '墩墩', caption: '省电担当' },
-  { src: '/media/pupu-sticker.png', name: '噗噗', caption: '快乐担当' },
-  { src: '/media/pillow-sticker.png', name: '趴趴墩墩', caption: '先躺为敬' },
-  { src: '/media/keychain-sticker.png', name: '贴贴搭子', caption: '友情挂件' },
+const moodScenes = [
+  [['墩墩', '我今天只剩 3% 电。'], ['噗噗', '那我不开大灯，坐你旁边充。'], ['墩墩', '……只许坐一会儿。'], ['噗噗', '好，充满为止。']],
+  [['噗噗', '我刚才对路边的云说了早上好！'], ['墩墩', '它回你了吗？'], ['噗噗', '它飘了一下，肯定是害羞。'], ['墩墩', '行。下次替我也问个好。']],
+  [['墩墩', '我没有等你。'], ['噗噗', '那你为什么站在这里？'], ['墩墩', '这块地比较平。'], ['噗噗', '那我陪你一起站平。']],
+  [['墩墩', '今天的待办：躺好。'], ['噗噗', '我负责把零食搬过来。'], ['墩墩', '这也算分工？'], ['噗噗', '我们是专业团队。']],
+  [['墩墩', '我能听见，你小声点。'], ['噗噗', '那我眨眼跟你聊天？'], ['墩墩', '这个方案……可以。'], ['噗噗', '眨一下是“收到”！']],
+  [['噗噗', '我们今天飘去哪里？'], ['墩墩', '飘到不用回消息的地方。'], ['噗噗', '那里有云朵沙发吗？'], ['墩墩', '有。给你留半边。']],
+  [['墩墩', '我的脑袋空空的。'], ['噗噗', '正好，我有一盒薯片。'], ['墩墩', '这两件事有什么关系？'], ['噗噗', '空位不能浪费。']],
+  [['噗噗', '长大申请我先撤回啦。'], ['墩墩', '理由？'], ['噗噗', '朋友还没陪我玩够。'], ['墩墩', '批准延期。没有截止日。']],
+  [['墩墩', '奶茶要全糖。'], ['噗噗', '今天这么勇敢？'], ['墩墩', '生活已经够苦了。'], ['噗噗', '那我的珍珠也给你。']],
+  [['噗噗', '你的灵魂去哪儿散步了？'], ['墩墩', '让它路过便利店。'], ['噗噗', '要不要我去接它？'], ['墩墩', '带饭回来就行。']],
+  [['墩墩', '我现在像河豚。'], ['噗噗', '那我坐远一点点？'], ['墩墩', '不行。'], ['噗噗', '懂了，河豚也要贴贴。']],
+  [['墩墩', '三米外有人开薯片。'], ['噗噗', '你怎么知道？'], ['墩墩', '我的耳朵只上这个班。'], ['噗噗', '那我给你留最大一片。']],
+  [['墩墩', '今天星期几？'], ['噗噗', '周一。'], ['墩墩', '我不同意。'], ['噗噗', '那我们假装它还没来。']],
+  [['噗噗', '这片叶子像我！'], ['墩墩', '哪里像？'], ['噗噗', '圆圆的，而且很快乐。'], ['墩墩', '……带回去认亲吧。']],
+  [['墩墩', '我很忙。'], ['噗噗', '忙什么？'], ['墩墩', '给空气开会。'], ['噗噗', '那散会去吃饭。']],
+  [['墩墩', '我只是路过八次。'], ['噗噗', '这条路有我吗？'], ['墩墩', '风景还行。'], ['噗噗', '那我每天都在这里。']],
+  [['噗噗', '被子把我吸住了！'], ['墩墩', '科学问题。'], ['噗噗', '要不要一起研究？'], ['墩墩', '研究到明天。']],
+  [['噗噗', '月亮会想吃宵夜吗？'], ['墩墩', '它挂那么晚，应该会。'], ['噗噗', '那我们给它留一口？'], ['墩墩', '先问冰箱同不同意。']],
+  [['墩墩', '今天没进步。'], ['噗噗', '但你今天很可爱。'], ['墩墩', '这个也算业绩？'], ['噗噗', '我给你盖两个合格章。']],
+  [['噗噗', '再挪两厘米！'], ['墩墩', '已经很近了。'], ['噗噗', '友情需要精准贴贴。'], ['墩墩', '再挪我就掉下去了。']],
+  [['噗噗', '下雨了，出门取消吗？'], ['墩墩', '鞋替我们去吧。'], ['噗噗', '那我们听雨。'], ['墩墩', '顺便煮点面。']],
+  [['噗噗', '别人比速度，我们比谁慢。'], ['墩墩', '我已经领先了。'], ['噗噗', '你根本没动。'], ['墩墩', '这就是技术。']],
+  [['噗噗', '今天换我给你撑伞。'], ['墩墩', '你的胳膊够长吗？'], ['噗噗', '不够就挨近一点。'], ['墩墩', '……那我蹲下来。']],
+  [['墩墩', '今天好像没发生什么。'], ['噗噗', '发生了我们在一起呀。'], ['墩墩', '这也算？'], ['噗噗', '这算珍藏版。']],
 ] as const;
+// Actual transparent cutouts, derived from the original IP sticker artwork.
+const moodStickerCovers = [
+  '/media/stickers/mood-duo-huddle-cutout.png',
+  '/media/stickers/mood-sticker-02-cutout.png',
+  '/media/stickers/mood-sticker-03-cutout.png',
+  '/media/stickers/mood-sticker-04-cutout.png',
+  '/media/stickers/mood-sticker-05-cutout.png',
+  '/media/stickers/mood-sticker-06-cutout.png',
+  '/media/stickers/mood-sticker-07-cutout.png',
+  '/media/stickers/mood-sticker-08-cutout.png',
+] as const;
+const dealMoodStickers = (draw: () => number, focus: number) => {
+  const dealt = drawRound(draw, 4);
+  if (!dealt.includes(focus)) dealt[0] = focus;
+  return dealt;
+};
 const pickTags = (draw: () => number) =>
   drawRound(draw, 8).map((i) => chaosTags[i]);
 export default function Universe({ motion }: { motion: boolean }) {
@@ -137,7 +174,11 @@ export default function Universe({ motion }: { motion: boolean }) {
     [fortune, setFortune] = useState('今天适合：和好朋友一起虚度。'),
     [tags, setTags] = useState<string[]>(() => chaosTags.slice(0, 8));
   const [drawId, setDrawId] = useState(0);
+  const [stickerMoods, setStickerMoods] = useState([0, 1, 2, 3]);
+  const [stickerArt, setStickerArt] = useState([0, 1, 2, 3]);
   const moodDeck = useRef(shuffledDeck(moods.length, 0));
+  const stickerMoodDeck = useRef(shuffledDeck(moods.length, 3));
+  const stickerArtDeck = useRef(shuffledDeck(moodStickerCovers.length, 3));
   const fortuneDeck = useRef(shuffledDeck(fortunes.length));
   const tagDeck = useRef(shuffledDeck(chaosTags.length));
   const board = useRef<HTMLDivElement>(null),
@@ -156,6 +197,23 @@ export default function Universe({ motion }: { motion: boolean }) {
     setTags(pickTags(tagDeck.current));
   }, []);
   useEffect(() => {
+    const deal = () => {
+      setStickerMoods(dealMoodStickers(stickerMoodDeck.current, 0));
+      setStickerArt(drawRound(stickerArtDeck.current, 4));
+    };
+    // Let the section settle first, then introduce one mood bubble on its own.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        deal();
+        observer.disconnect();
+      },
+      { threshold: 0.35 },
+    );
+    if (board.current) observer.observe(board.current);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
     if (!motion) {
       moodTween.current?.kill();
       burstTween.current?.kill();
@@ -165,18 +223,20 @@ export default function Universe({ motion }: { motion: boolean }) {
   }, [motion]);
   const choose = (next: number) => {
     setMood(next);
+    setStickerMoods(dealMoodStickers(stickerMoodDeck.current, next));
+    setStickerArt(drawRound(stickerArtDeck.current, 4));
     setDrawId(v => v + 1);
   };
   useEffect(() => {
     if (!drawId || !board.current) return;
-    if (!motion || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!motion) {
       soundCue('reveal');
       return;
     }
     const ctx = gsap.context(() => {
       moodTween.current = gsap.timeline({ onComplete: () => soundCue('reveal') })
         .fromTo('.mood-toy', { y: 38, scale: .75, opacity: 0 }, { y: 0, scale: 1, opacity: 1, stagger: .065, duration: .65, ease: 'back.out(2)' })
-        .fromTo('.mood-report > *', { y: 14, opacity: 0 }, { y: 0, opacity: 1, stagger: .055, duration: .35 }, .22);
+        .fromTo('.mood-dialogue', { y: 12, scale: .92, opacity: 0 }, { y: 0, scale: 1, opacity: 1, stagger: .18, duration: .35, ease: 'back.out(1.6)' }, .3);
     }, board);
     return () => ctx.revert();
   }, [drawId, motion]);
@@ -228,19 +288,13 @@ export default function Universe({ motion }: { motion: boolean }) {
         </div>
         <div className="mood-layout">
           <div className="mood-menu reveal">
-            <span className="tiny-label">请选择你的精神状态 ↓</span>
-            {moods.slice(0, 8).map((m, i) => (
-              <button
-                key={m.label}
-                className={mood === i ? 'mood-choice selected' : 'mood-choice'}
-                aria-pressed={mood === i}
-                onClick={() => choose(i)}
-              >
-                <span>0{i + 1}</span>
-                {m.label}
-                <ArrowUpRight size={22} />
-              </button>
-            ))}
+            <span className="tiny-label">TODAY’S MOOD / 24 款随机收容</span>
+            <div className="mood-console" aria-live="polite">
+              <span>正在收容 NO. {String(mood + 1).padStart(2, '0')}</span>
+              <strong>{moods[mood].label}</strong>
+              <p>{moods[mood].tag}</p>
+              <i>抽一次，换一个小场景</i>
+            </div>
             <button
               className="random-mood"
               onClick={() => {
@@ -256,21 +310,25 @@ export default function Universe({ motion }: { motion: boolean }) {
             <div className="mood-issue"><span>情绪收容所 / MOOD CLUB</span><span>NO. {String(mood + 1).padStart(2, '0')} / 24</span></div>
             <div className="mood-toy-stage">
               <span className="mood-stage-word" aria-hidden="true">MOOD!</span>
-              {moodStickers.map((item, i) => (
-                <div className={'mood-toy toy-' + i} key={item.src}>
-                  <Sticker className="mood-collectible" src={item.src} label={'戳戳' + item.name} />
-                  <span className="toy-caption">{item.caption}<span>0{i + 1}</span></span>
+              {stickerMoods.map((moodIndex, i) => {
+                const item = moods[moodIndex];
+                return (
+                <div className={'mood-toy toy-' + i} key={`${moodIndex}-${i}`}>
+                  <Sticker
+                    className="mood-collectible"
+                    src={moodStickerCovers[stickerArt[i]]}
+                    label={`打开情绪盲盒：${item.label}`}
+                    lines={[item.reply]}
+                    onReveal={() => choose(moodIndex)}
+                  />
+                  {moodScenes[mood][i] && (
+                    <span className={'mood-dialogue dialogue-' + i}>
+                      <strong>{moodScenes[mood][i][0]}</strong>{moodScenes[mood][i][1]}
+                    </span>
+                  )}
                 </div>
-              ))}
-              <span className="mood-stage-note">戳一下，每只都有小脾气 ↗</span>
-            </div>
-            <div className="mood-report" aria-live="polite">
-              <span className="mood-tag">
-                {moods[mood].label} / {moods[mood].tag}
-              </span>
-              <h3>{moods[mood].title}</h3>
-              <p>{moods[mood].sub}</p>
-              <span className="speech-reply">{moods[mood].reply}</span>
+              )})}
+              <span className="mood-stage-note">自动冒泡中；也可以戳开任意一只 ↗</span>
             </div>
           </div>
         </div>
@@ -398,14 +456,29 @@ export default function Universe({ motion }: { motion: boolean }) {
             {chosen?.[2]} · 设计师拯的原创 IP 设计稿
           </DialogDescription>
           {chosen && (
-            <Image
-              unoptimized
-              className="art-full"
-              src={'/media/archive-' + chosen[0] + '.webp'}
-              alt={chosen[1]}
-              width={1400}
-              height={1400}
-            />
+            <div className="art-stage">
+              <Image
+                unoptimized
+                className="art-full"
+                src={'/media/archive-' + chosen[0] + '.webp'}
+                alt={chosen[1]}
+                width={1400}
+                height={1400}
+              />
+              <button
+                className="art-download art-download-overlay"
+                onClick={() =>
+                  void downloadAsPng(
+                    '/media/archive-' + chosen[0] + '.webp',
+                    `墩墩和噗噗原稿-${chosen[1]}`,
+                  ).catch(() => {})
+                }
+                aria-label={`下载 PNG：${chosen[1]}`}
+              >
+                <Download size={17} />
+                下载原稿 PNG
+              </button>
+            </div>
           )}
           <div className="art-dialog-controls">
             <button

@@ -36,4 +36,7 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+/dev-server.log
+/ipv4-proxy.log
+/.playwright-cli/
 *.tsbuildinfo

@@ -9,11 +9,18 @@ export default function Sticker({
   className,
   label,
   lines = pokeLines,
+  autoReply,
+  autoReplyKey,
+  onReveal,
 }: {
   src: string;
   className: string;
   label: string;
   lines?: readonly string[];
+  /** A contextual line can be surfaced without requiring visitors to discover the sticker interaction. */
+  autoReply?: string;
+  autoReplyKey?: number;
+  onReveal?: () => void;
 }) {
   const button = useRef<HTMLButtonElement>(null);
   const art = useRef<HTMLSpanElement>(null);
@@ -21,13 +28,17 @@ export default function Sticker({
   const [reply, setReply] = useState('');
   const deck = useRef(shuffledDeck(lines.length));
   const canMove = () =>
-    !matchMedia('(prefers-reduced-motion: reduce)').matches &&
     button.current?.closest('main')?.dataset.motion !== 'false';
   useEffect(() => {
     if (!reply) return;
     const timer = setTimeout(() => setReply(''), 2600);
     return () => clearTimeout(timer);
   }, [reply]);
+  useEffect(() => {
+    if (!autoReply || autoReplyKey === undefined) return;
+    const timer = setTimeout(() => setReply(autoReply), 420);
+    return () => clearTimeout(timer);
+  }, [autoReply, autoReplyKey]);
   useEffect(
     () => () => {
       animation.current?.kill();
@@ -54,6 +65,7 @@ export default function Sticker({
       aria-label={label}
       onClick={() => {
         setReply(lines[deck.current()]);
+        onReveal?.();
         if (art.current && canMove()) {
           animation.current?.kill();
           animation.current = gsap.fromTo(

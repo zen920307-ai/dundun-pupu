@@ -1,5 +1,22 @@
 # 网站维护
 
+## 2026-09-08 片尾定格在亮白帧（不播自带淡出段）
+- 探测：视频 30.08s，语音 29.21s 已结束（silencedetect），29.5s 帧仍亮白，~29.55s 起片尾自带压暗淡出，末帧暗灰。之前的「播完变暗」= 片尾淡出段 + hero-shade 双重叠加。
+- 修复：page.tsx 定 `VIDEO_STOP_TIME = 29.45`，rAF 循环在播放中到达该点即 pause 并视为播完（endedRef + heroEnded），定格在亮白帧；hero 加 `hero-ended` 类，`.hero-shade` 过渡淡出（0.9s）。手动播放按钮对「已定格」视频（currentTime ≥ 29.45 或 ended）先归零再播，遮罩恢复；从头播放按钮同步处理。onEnded 保留作兜底。
+- 验证：playwright 实测定格 t=29.47、shade opacity 0、滚动/鼠标不动不重播、手动播放从 0 重播且遮罩恢复；tsc 通过。
+- 注意：定格后 hero 白色标题在白底上对比度低——已跟进：`.hero.hero-ended` 下 hero-top/hero-bottom/eyebrow/h1/hero-desc 切深色 #22221f（0.9s 过渡与遮罩淡出同步），重播恢复白色，实测可读性正常。
+
+## 2026-09-08 首屏视频禁止自动重播
+- 问题：视频播完后，任何触发 IntersectionObserver 回调的动作（轻微滚动、鼠标滚轮、动效位移）都会调用 `play()`，而对已播完的视频调 `play()` 会从头重播。
+- 修复：`page.tsx` 新增 `endedRef` 守卫——`onEnded` 置 true，`attempt()` 自动播放路径直接跳过；手动播放按钮和「从头播放」按钮点击时清掉标记（播放按钮对已播完视频先归零再播）。滚动离开首屏再回来、切标签页回来都不会重播；刷新或从其他页回首页属全新加载，自动播放行为不变。
+- 验证：playwright 实测播完后鼠标移动/滚轮/滚走再回均保持暂停，手动点播放从 0 重播；tsc 通过，lint 仅剩 page.tsx 既有 4 条 no-html-link 保留项。
+
+## 2026-09-08 弹窗修复与首屏视频调整
+- 图片预览弹窗（KV / 壁纸 / 首页原稿，出逃档案除外）底部空白根因是 `.art-dialog` 的 `inset:0 + margin:auto` 把高度拉伸到 94svh；改为 `left/top 50% + translate:-50% -50%` 后高度收缩到内容实际高度。注意 Tailwind v4 的 `-translate-x/y-1/2` 使用 `translate` 属性，`.art-dialog` 需用 `transform:none` 防止双重偏移。
+- 下载按钮改为图片内部正下方 overlay（`.art-stage` + `.art-download-overlay`），新增 `app/download.ts`：所有图片下载经 canvas 转为 PNG；移动端（触屏+移动 UA）走 Web Share 系统面板可直接存相册，桌面直接下载 .png。壁纸卡片「带它走」同步改。源文件仍为 WebP，仅下载产物转 PNG。Universe 原稿弹窗新增下载按钮。
+- 首屏视频只播放一遍（移除 loop），移除画质下拉框，固定播放 intro-enhanced-1080.mp4（加载失败静默回落 720p）。相关 `.video-quality` 样式已清理。
+- 出逃档案 travel 弹窗保持不变。验证：tsc、build、lint（无新增错误）、playwright 桌面 1440×1000 与移动 390×844 实测通过，PNG 转换与 console 零错误确认。
+
 ## 2026-09-08 互动与画质精修
 
 `app/polish.css` 是按原有黑白橙方向实现的精修层，最后导入。`ExperienceMotion.tsx` 负责首屏入场、阅读进度、分区线、角色视差、按钮磁吸和仅在可见区运行的贴纸浮动；系统减少动态效果及顶部动效开关会关闭新增动画。四张情绪素材改用高清透明角色原有网站副本，独立点击回应，抽选分层揭晓且避免抽到当前状态。保留已有 24 款情绪、40 条任务与测验内容。
@@ -16,6 +33,12 @@
 验证：`node --experimental-strip-types scripts/travel.test.mjs` 检查全部原图对应关系、日期顺序、唯一锚点与图片存在性；构建和类型检查通过，新增页面及修改的公共入口 lint 通过。全 app lint 的既有问题位于 Origin.tsx 和 Universe.tsx。本轮未进行浏览器视觉或交互测试；首页和旅行页 HTTP 预览返回 200。现有线上站点未发布此轮变更。
 
 源码：dundun-pupu-site/app。
+
+## 上线
+站点仓库：https://github.com/zen920307-ai/dundun-pupu
+GitHub Pages 自动从 master 构建。自定义域名 `dun.zenslab.top`。
+DNS 必须把 `dun` 做成 CNAME 到 `zen920307-ai.github.io`（不要再指向 custom-domains.chatgpt.site）。
+ChatGPT Sites 的预览会过期，所以会经常打不开。
 
 ## 更换首屏视频
 替换 public/media/intro.mp4；建议MP4 / H.264编码并带音轨。可同时替换 public/media/poster.jpg 和 public/media/intro.vtt，字幕必须与新视频一致。若使用其他文件名，编辑 app/content.ts 的 INTRO_VIDEO。

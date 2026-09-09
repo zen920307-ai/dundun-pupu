@@ -20,42 +20,51 @@ import {
 } from 'lucide-react';
 
 export default function Home() {
+  // 片尾 29.55s 起视频自带压暗淡出；29.21s 语音已说完。
+  // 播到 29.45s 就定格在亮白背景帧，跳过变暗段。
+  const VIDEO_STOP_TIME = 29.45;
   const root = useRef<HTMLElement>(null);
   const pokeDeck = useRef(shuffledDeck(pokeLines.length));
   const video = useRef<HTMLVideoElement>(null);
   const reaction = useRef<HTMLDivElement>(null);
   const manualPause = useRef(false);
   const heroVisible = useRef(true);
+  // 播完后禁止一切自动重播；只有手动点播放按钮才重来
+  const endedRef = useRef(false);
   const [needsStart, setNeedsStart] = useState(false);
+  const [heroEnded, setHeroEnded] = useState(false);
   const [muted, setMuted] = useState(false),
     [playing, setPlaying] = useState(false),
     [motion, setMotion] = useState(true),
     [line, setLine] = useState('别戳。再戳……也行。');
   const [quality, setQuality] = useState<'enhanced' | 'original'>('enhanced');
-  const restoreTime = useRef(0);
-  const resumeAfterQuality = useRef(false);
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-    const preference = matchMedia('(prefers-reduced-motion: reduce)');
-    const sync = () => setMotion(!preference.matches);
-    sync(); preference.addEventListener('change', sync);
-    return () => preference.removeEventListener('change', sync);
+    // 动效默认开，不受系统 prefers-reduced-motion 影响；关闭只走页头开关（data-motion）
   }, []);
   useEffect(() => {
     const el = video.current;
     if (!el) return;
     const attempt = () => {
       if (
+        endedRef.current ||
         !heroVisible.current ||
         document.hidden ||
-        manualPause.current ||
-        matchMedia('(prefers-reduced-motion: reduce)').matches
+        manualPause.current
       )
         return;
+      // 先试有声播放；被浏览器自动播放策略拦下就退回静音自动播，
+      // 「点一下，有声开场」按钮保留，用于恢复声音。
       void el
         .play()
         .then(() => setNeedsStart(false))
-        .catch(() => setNeedsStart(true));
+        .catch(() => {
+          el.muted = true;
+          setMuted(true);
+          el.play()
+            .then(() => setNeedsStart(true))
+            .catch(() => setNeedsStart(true));
+        });
     };
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -72,14 +81,27 @@ export default function Home() {
       else attempt();
     };
     document.addEventListener('visibilitychange', visibility);
+    // 到达定格点（淡出前）就当作播完处理
+    let raf = 0;
+    const tick = () => {
+      if (!endedRef.current && !el.paused && el.currentTime >= VIDEO_STOP_TIME) {
+        endedRef.current = true;
+        el.pause();
+        setPlaying(false);
+        setHeroEnded(true);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
     return () => {
+      cancelAnimationFrame(raf);
       observer.disconnect();
       document.removeEventListener('visibilitychange', visibility);
       el.pause();
     };
   }, []);
   useEffect(() => {
-    if (!motion || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!motion) return;
     const ctx = gsap.context(() => {
       gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) =>
         gsap.from(el, {
@@ -160,34 +182,25 @@ export default function Home() {
         跳到角色介绍
       </a>
       <SiteHeader motion={motion} onMotionChange={() => setMotion(!motion)} />
-      <section className="hero" id="home">
+      <section className={'hero' + (heroEnded ? ' hero-ended' : '')} id="home">
         <video
           ref={video}
           className="hero-video"
           src={quality === 'enhanced' ? INTRO_VIDEO.src : INTRO_VIDEO.original}
-          onLoadedMetadata={() => {
-            const el = video.current;
-            if (!el) return;
-            el.currentTime = Math.min(restoreTime.current, el.duration || 0);
-            if (resumeAfterQuality.current && heroVisible.current && !document.hidden) {
-              void el.play().catch(() => setNeedsStart(true));
-            }
-            resumeAfterQuality.current = false;
-          }}
           poster={INTRO_VIDEO.poster}
           onError={() => {
-            if (quality === 'enhanced') {
-              restoreTime.current = video.current?.currentTime ?? 0;
-              resumeAfterQuality.current = playing;
-              setQuality('original');
-            }
+            if (quality === 'enhanced') setQuality('original');
           }}
           muted={muted}
-          loop
           playsInline
-          preload="metadata"
+          preload="auto"
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
+          onEnded={() => {
+            endedRef.current = true;
+            setPlaying(false);
+            setHeroEnded(true);
+          }}
           aria-label={INTRO_VIDEO.label}
         >
           <track
@@ -219,17 +232,6 @@ export default function Home() {
           </a>
         </div>
         <div className="video-controls" data-silent>
-          <label className="video-quality">
-            <span className="sr-only">视频画质</span>
-            <select aria-label="视频画质" value={quality} onChange={e => {
-              restoreTime.current = video.current?.currentTime ?? 0;
-              resumeAfterQuality.current = playing;
-              setQuality(e.target.value as 'enhanced' | 'original');
-            }}>
-              <option value="enhanced">1080p · 增强</option>
-              <option value="original">720p · 高清</option>
-            </select>
-          </label>
           {needsStart && (
             <button
               className="sound-start"
@@ -250,18 +252,26 @@ export default function Home() {
           )}
           <button
             onClick={() => {
-              if (video.current) {
-                if (video.current.paused) {
-                  manualPause.current = false;
-                  void video.current
-                    .play()
-                    .then(() => setNeedsStart(false))
-                    .catch(() => setNeedsStart(true));
-                } else {
-                  manualPause.current = true;
-                  video.current.pause();
+                if (video.current) {
+                  if (video.current.paused) {
+                    manualPause.current = false;
+                    if (
+                      video.current.ended ||
+                      video.current.currentTime >= VIDEO_STOP_TIME
+                    ) {
+                      video.current.currentTime = 0;
+                    }
+                    endedRef.current = false;
+                    setHeroEnded(false);
+                    void video.current
+                      .play()
+                      .then(() => setNeedsStart(false))
+                      .catch(() => setNeedsStart(true));
+                  } else {
+                    manualPause.current = true;
+                    video.current.pause();
+                  }
                 }
-              }
             }}
             aria-label={playing ? '暂停视频' : '播放视频'}
           >
@@ -278,6 +288,8 @@ export default function Home() {
             onClick={() => {
               if (video.current) {
                 manualPause.current = false;
+                endedRef.current = false;
+                setHeroEnded(false);
                 video.current.currentTime = 0;
                 void video.current
                   .play()
@@ -580,12 +592,23 @@ export default function Home() {
               <ArrowUpRight size={34} />
             </p>
             <p>
+              十年工作经验的 UI/UX 设计师，
+              <br />
               墩墩和噗噗的原创设计师。
               <br />
               把一点无厘头，和很多很多陪伴，
               <br />
               装进两个毛茸茸的小家伙里。
             </p>
+            <a
+              className="pill orange creator-link"
+              href="https://design.zenslab.top"
+              target="_blank"
+              rel="noreferrer"
+            >
+              我的个人网站
+              <ArrowUpRight size={22} />
+            </a>
             <span className="signature">拯 / ZEN</span>
           </div>
           <Image

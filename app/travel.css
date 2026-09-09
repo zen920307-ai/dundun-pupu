@@ -154,4 +154,3 @@
   .travel-colophon { font-size: 12px; }
 }
 @media (max-width:380px) { .trip-overview { gap: 14px; padding-inline: 12px; } .trip-intro h3 { font-size: 23px; } .trip-intro-meta { gap: 6px 10px; } }
-@media (prefers-reduced-motion:reduce) { .nav-travel > span { animation: none; } .lightbox-dialog, .lightbox-dialog::backdrop { animation: none; } .travel-page *, .travel-entry * { scroll-behavior: auto; } }

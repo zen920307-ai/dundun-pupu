@@ -93,7 +93,7 @@ export default function Playground({ motion }: { motion: boolean }) {
   const draw = () => {
     setMission(missionDeck.current());
     setIssued(true);
-    if (motion && !matchMedia('(prefers-reduced-motion: reduce)').matches && ticket.current) {
+    if (motion && ticket.current) {
       animation.current?.kill();
       animation.current = gsap.fromTo(
         ticket.current,

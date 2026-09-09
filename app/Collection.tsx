@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowUpRight, Expand, Download } from 'lucide-react';
 import SiteHeader from './SiteHeader';
 import Image from './IPImage';
 import ArtworkViewer from './ArtworkViewer';
+import { downloadAsPng } from './download';
 import { kv, wallpapers } from './gallery-data';
 
 export default function Collection({ kind }: { kind: 'kv' | 'wallpapers' }) {
@@ -19,14 +20,7 @@ export default function Collection({ kind }: { kind: 'kv' | 'wallpapers' }) {
   const categories = ['全部', ...new Set(items.map((item) => item.tag))];
   const grid = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const media = matchMedia('(prefers-reduced-motion: reduce)');
-    const frame = requestAnimationFrame(() => setMotion(!media.matches));
-    const changed = () => setMotion(!media.matches);
-    media.addEventListener('change', changed);
-    return () => {
-      cancelAnimationFrame(frame);
-      media.removeEventListener('change', changed);
-    };
+    // 动效默认开，不受系统 prefers-reduced-motion 影响；关闭只走页头开关（data-motion）
   }, []);
   useEffect(() => {
     if (!motion || !grid.current) return;
@@ -158,15 +152,16 @@ export default function Collection({ kind }: { kind: 'kv' | 'wallpapers' }) {
                 </span>
                 <h2>{item.title}</h2>
                 {wallpaper ? (
-                  <a
-                    href={item.src}
-                    download={`${item.title}.webp`}
+                  <button
                     className="wallpaper-save"
                     aria-label={`保存壁纸：${item.title}`}
+                    onClick={() =>
+                      void downloadAsPng(item.src, item.title).catch(() => {})
+                    }
                   >
                     <Download size={16} />
                     带它走
-                  </a>
+                  </button>
                 ) : (
                   <button
                     className="kv-open"
