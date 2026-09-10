@@ -90,7 +90,7 @@ export default function TravelJournal() {
                       return (
                         <div className={'dlg-row ' + (isDundun ? 'dlg-dundun' : 'dlg-pupu')} key={i}>
                           <span className="dlg-avatar" aria-hidden="true">
-                            <Image src={isDundun ? '/media/avatar-dundun.jpg' : '/media/avatar-pupu.jpg'} width={72} height={72} alt="" loading="lazy" />
+                            <Image src={isDundun ? '/media/avatar-dundun.webp' : '/media/avatar-pupu.webp'} width={72} height={72} alt="" loading="lazy" />
                           </span>
                           <p className="dlg-bubble">{line.slice(3)}</p>
                         </div>

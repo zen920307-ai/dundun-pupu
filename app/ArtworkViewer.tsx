@@ -1,7 +1,7 @@
 'use client';
 import { ArrowLeft, ArrowRight, Download, X } from 'lucide-react';
 import Image from './IPImage';
-import { downloadAsPng } from './download';
+import { downloadOriginal } from './download';
 import {
   Dialog,
   DialogContent,
@@ -58,8 +58,8 @@ export default function ArtworkViewer({
             <button
               className="art-download art-download-overlay"
               onClick={() =>
-                void downloadAsPng(
-                  item.src,
+                void downloadOriginal(
+                  item.original,
                   `${item.title}-${item.width}x${item.height}`,
                 ).catch(() => {})
               }

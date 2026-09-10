@@ -166,7 +166,7 @@ export default function Playground({ motion }: { motion: boolean }) {
                 unoptimized
                 src={
                   '/media/' +
-                  (isPupu ? 'pupu-sticker.png' : 'dundun-sticker.png')
+                  (isPupu ? 'pupu-sticker.webp' : 'dundun-sticker.webp')
                 }
                 width={500}
                 height={550}

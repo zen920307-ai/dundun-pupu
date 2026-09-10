@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from './IPImage';
 import Sticker from './Sticker';
 import { soundCue } from './sound';
-import { downloadAsPng } from './download';
+import { downloadOriginal } from './download';
 import Playground from './Playground';
 import FestivalGallery from './FestivalGallery';
 import {
@@ -468,8 +468,8 @@ export default function Universe({ motion }: { motion: boolean }) {
               <button
                 className="art-download art-download-overlay"
                 onClick={() =>
-                  void downloadAsPng(
-                    '/media/archive-' + chosen[0] + '.webp',
+                  void downloadOriginal(
+                    '/downloads/archive/' + chosen[0] + '.png',
                     `墩墩和噗噗原稿-${chosen[1]}`,
                   ).catch(() => {})
                 }

@@ -2,7 +2,7 @@
 export const INTRO_VIDEO = {
   src: '/media/intro-enhanced-1080.mp4',
   original: '/media/intro-original-720.mp4',
-  poster: '/media/poster-enhanced.jpg',
+  poster: '/media/poster-enhanced.webp',
   captions: '/media/intro.vtt',
   label: '墩墩和噗噗的原创角色短片',
 };

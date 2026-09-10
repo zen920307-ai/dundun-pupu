@@ -1,26 +1,14 @@
 'use client';
 
-// 把站点里的 WebP 图统一转成 PNG 交给用户：
-// - 桌面端：直接触发浏览器下载 .png
+// 原始 PNG 只在用户明确下载时请求；网页预览始终使用 WebP。
+// - 桌面端：直接下载原始 PNG
 // - 移动端（触屏 + 移动 UA）：走系统分享面板，可直接「存储到相册」
-export async function downloadAsPng(src: string, name: string) {
+export async function downloadOriginal(src: string, name: string) {
   const response = await fetch(src);
   if (!response.ok) throw new Error(`图片获取失败：${response.status}`);
   const blob = await response.blob();
-  const bitmap = await createImageBitmap(blob);
-  const canvas = document.createElement('canvas');
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('画布不可用');
-  ctx.drawImage(bitmap, 0, 0);
-  bitmap.close();
-  const png = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, 'image/png'),
-  );
-  if (!png) throw new Error('PNG 转换失败');
   const filename = `${name}.png`;
-  const file = new File([png], filename, { type: 'image/png' });
+  const file = new File([blob], filename, { type: 'image/png' });
   const isMobile =
     matchMedia('(pointer: coarse)').matches &&
     /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);

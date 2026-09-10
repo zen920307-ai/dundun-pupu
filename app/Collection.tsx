@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowUpRight, Expand, Download } from 'lucide-react';
 import SiteHeader from './SiteHeader';
 import Image from './IPImage';
 import ArtworkViewer from './ArtworkViewer';
-import { downloadAsPng } from './download';
+import { downloadOriginal } from './download';
 import { kv, wallpapers } from './gallery-data';
 
 export default function Collection({ kind }: { kind: 'kv' | 'wallpapers' }) {
@@ -156,7 +156,7 @@ export default function Collection({ kind }: { kind: 'kv' | 'wallpapers' }) {
                     className="wallpaper-save"
                     aria-label={`保存壁纸：${item.title}`}
                     onClick={() =>
-                      void downloadAsPng(item.src, item.title).catch(() => {})
+                      void downloadOriginal(item.original, item.title).catch(() => {})
                     }
                   >
                     <Download size={16} />
