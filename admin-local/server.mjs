@@ -108,6 +108,49 @@ function gitExec(cmd) {
   });
 }
 
+// ---------- 图片变体生成（一张图 → 主图 webp + 缩略图 webp） ----------
+let pythonCmd = null;
+async function findPython() {
+  if (pythonCmd) return pythonCmd;
+  const candidates = ['C:\\Program Files\\Python312\\python.exe', 'python', 'python3'];
+  for (const cmd of candidates) {
+    const r = await new Promise((resolve) => {
+      exec(`"${cmd}" -c "import PIL"`, { windowsHide: true, timeout: 30000 }, (err) => resolve(!err));
+    });
+    if (r) {
+      pythonCmd = cmd;
+      return cmd;
+    }
+  }
+  return null;
+}
+
+const MAIN_MAX = 1600; // 主图（展示图/海报）最大宽
+const THUMB_MAX = 640; // 缩略图最大宽
+
+async function generateVariants(dir, originalFile, baseName) {
+  const py = await findPython();
+  if (!py) {
+    return { ok: false, error: '未找到带 Pillow 的 Python，无法自动生成格式' };
+  }
+  const genScript = path.join(__dirname, 'genimg.py');
+  const cmd = `"${py}" -X utf8 "${genScript}" "${originalFile}" "${dir}" "${baseName}" ${MAIN_MAX} ${THUMB_MAX}`;
+  return new Promise((resolve) => {
+    exec(cmd, { windowsHide: true, timeout: 120000, cwd: __dirname }, (err, stdout, stderr) => {
+      if (err) {
+        resolve({ ok: false, error: '生成图片变体失败：' + (stderr || err.message).slice(-300) });
+        return;
+      }
+      try {
+        const line = stdout.trim().split('\n').pop();
+        resolve({ ok: true, ...JSON.parse(line) });
+      } catch (e) {
+        resolve({ ok: false, error: '解析生成结果失败：' + String(stdout).slice(-200) });
+      }
+    });
+  });
+}
+
 // ---------- API ----------
 async function handleApi(req, res, url) {
   const send = (code, data) => {
@@ -153,6 +196,7 @@ async function handleApi(req, res, url) {
     }
 
     // 上传媒体：请求体为原始文件字节，文件名放 x-file-name 头
+    // 一张图自动生成全套格式：原图保留 + 主图 webp + 缩略图 webp，并回报主图尺寸
     if (url.pathname === '/api/upload' && req.method === 'POST') {
       const module = url.searchParams.get('module');
       const fileName = decodeURIComponent(req.headers['x-file-name'] || 'file');
@@ -160,12 +204,20 @@ async function handleApi(req, res, url) {
       const dir = path.join(MEDIA_DIR, module);
       await fs.mkdir(dir, { recursive: true });
       const safeName = fileName.replace(/[\\/:*?"<>|]/g, '_');
-      const fileNameOut = `${Date.now()}-${safeName}`;
+      const baseName = `${Date.now()}-${safeName.replace(/\.[^.]+$/, '')}`;
+      const ext = (safeName.match(/\.[^.]+$/) || ['.png'])[0].toLowerCase();
       const chunks = [];
       for await (const c of req) chunks.push(c);
-      await fs.writeFile(path.join(dir, fileNameOut), Buffer.concat(chunks));
-      const webPath = `/cms-media/${module}/${fileNameOut}`;
-      return send(200, { ok: true, path: webPath });
+      const originalOut = path.join(dir, `${baseName}-original${ext}`);
+      await fs.writeFile(originalOut, Buffer.concat(chunks));
+      const gen = await generateVariants(dir, originalOut, baseName);
+      return send(200, {
+        ok: true,
+        original: `/cms-media/${module}/${path.basename(originalOut)}`,
+        ...(gen.ok
+          ? { main: `/cms-media/${module}/${gen.main}`, thumb: `/cms-media/${module}/${gen.thumb}`, width: gen.width, height: gen.height }
+          : { main: `/cms-media/${module}/${path.basename(originalOut)}`, thumb: '', warning: gen.error + '，已直接使用原图' }),
+      });
     }
 
     // 发布：git add + commit + push

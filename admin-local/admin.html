@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="zxdOrQR9wEsAZ7F17I8BML">
-<head data-page-node-id="J4CyCq3AALsaQQ4Ln2S3iB">
-<meta charset="utf-8" data-page-node-id="JEXCCwearZlCyDZB8SCeyk" />
-<meta name="viewport" content="width=device-width, initial-scale=1" data-page-node-id="0ReE2DriGX5nTxIGnt6eBB" />
+<html lang="zh-CN" data-page-node-id="i7EF14yDF9wbcjZzknCEgK">
+<head data-page-node-id="Ln1QhwiAtnYvlvc5jgbdzR">
+<meta charset="utf-8" data-page-node-id="h18ii05v9CrQio3n0bQQEg" />
+<meta name="viewport" content="width=device-width, initial-scale=1" data-page-node-id="uySEPXKxqeTerNsLo3vx9a" />
 <title>墩墩和噗噗 · 内容后台</title>
 <style>
   :root {
@@ -24,11 +24,13 @@
   body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.6 "Microsoft YaHei", system-ui, sans-serif; display: flex; overflow: hidden; }
   button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
   input, textarea { font: inherit; color: var(--ink); }
+  .ico { display: inline-flex; flex: none; }
+  .ico svg { display: block; }
 
   /* ---------- 侧边栏 ---------- */
   .sidebar { width: 216px; flex: none; background: var(--side); color: var(--side-ink); display: flex; flex-direction: column; padding: 20px 14px; }
   .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 18px; }
-  .brand-logo { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #ff9a3d, #ff7a1a); display: grid; place-items: center; font-size: 20px; box-shadow: 0 4px 14px rgb(255 122 26 / 35%); }
+  .brand-logo { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #ff9a3d, #ff7a1a); display: grid; place-items: center; color: #fff; box-shadow: 0 4px 14px rgb(255 122 26 / 35%); }
   .brand b { color: #fff; font-size: 15px; display: block; line-height: 1.3; }
   .brand span { font-size: 11px; color: #8f8874; letter-spacing: 0.4px; }
   .nav-title { font-size: 11px; color: #75705f; letter-spacing: 2px; padding: 10px 10px 6px; }
@@ -36,7 +38,6 @@
   .nav button { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; font-size: 13.5px; color: var(--side-ink); text-align: left; transition: background 0.15s, color 0.15s; }
   .nav button:hover { background: rgb(255 255 255 / 6%); }
   .nav button.active { background: linear-gradient(135deg, #ff8b2e, #ff7a1a); color: #fff; font-weight: 600; box-shadow: 0 4px 14px rgb(255 122 26 / 30%); }
-  .nav .ico { font-size: 16px; width: 20px; text-align: center; }
   .nav .cnt { margin-left: auto; font-size: 11px; background: rgb(255 255 255 / 10%); border-radius: 999px; padding: 1px 8px; }
   .nav button.active .cnt { background: rgb(255 255 255 / 25%); }
   .side-foot { border-top: 1px solid rgb(255 255 255 / 8%); padding-top: 12px; display: flex; flex-direction: column; gap: 2px; }
@@ -46,16 +47,17 @@
   /* ---------- 主区 ---------- */
   main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
   .topbar { display: flex; align-items: center; gap: 14px; padding: 18px 28px; }
-  .topbar h2 { margin: 0; font-size: 20px; }
+  .topbar h2 { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 9px; }
+  .topbar h2 .ico { color: var(--accent); }
   .topbar .sub { font-size: 12.5px; color: var(--ink-3); }
   .spacer { flex: 1; }
   .search-wrap { position: relative; }
-  .search-wrap::before { content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; opacity: 0.5; }
-  .search { width: 220px; padding: 10px 14px 10px 34px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font-size: 13px; transition: width 0.2s, box-shadow 0.2s; }
-  .search:focus { outline: none; width: 260px; box-shadow: 0 0 0 3px rgb(255 122 26 / 18%); }
-  .btn-add { display: flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 600; transition: transform 0.15s, background 0.15s; }
+  .search-wrap .ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
+  .search { width: 210px; padding: 10px 14px 10px 36px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font-size: 13px; transition: width 0.2s, box-shadow 0.2s; }
+  .search:focus { outline: none; width: 250px; box-shadow: 0 0 0 3px rgb(255 122 26 / 18%); }
+  .btn-add { display: flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 600; white-space: nowrap; transition: transform 0.15s, background 0.15s; }
   .btn-add:hover { background: #3a382f; transform: translateY(-1px); }
-  .btn-publish { position: relative; display: flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 999px; background: linear-gradient(135deg, #ff8b2e, #ff7a1a); color: #fff; font-size: 13.5px; font-weight: 700; box-shadow: 0 6px 18px rgb(255 122 26 / 35%); transition: transform 0.15s, filter 0.15s; }
+  .btn-publish { position: relative; display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 999px; background: linear-gradient(135deg, #ff8b2e, #ff7a1a); color: #fff; font-size: 13.5px; font-weight: 700; white-space: nowrap; box-shadow: 0 6px 18px rgb(255 122 26 / 35%); transition: transform 0.15s, filter 0.15s; }
   .btn-publish:hover { transform: translateY(-1px); filter: brightness(1.05); }
   .btn-publish:disabled { opacity: 0.55; cursor: default; transform: none; }
   .btn-publish .dot { position: absolute; top: -3px; right: -3px; width: 11px; height: 11px; border-radius: 50%; background: #ffd23d; border: 2px solid var(--bg); display: none; }
@@ -65,54 +67,86 @@
   .scroll { flex: 1; overflow-y: auto; padding: 4px 28px 40px; }
 
   /* ---------- 卡片网格 ---------- */
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 18px; }
-  .card { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform 0.18s, box-shadow 0.18s; animation: rise 0.35s both; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 18px; }
+  .card { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform 0.18s, box-shadow 0.18s; animation: rise 0.35s both; display: flex; flex-direction: column; }
   .card:hover { transform: translateY(-4px); box-shadow: 0 6px 16px rgb(48 42 28 / 9%), 0 18px 40px rgb(48 42 28 / 10%); }
   @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
   .cover { position: relative; aspect-ratio: 4 / 3; background: linear-gradient(135deg, #efe9da, #e5decb); overflow: hidden; }
   .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .cover .badge { position: absolute; top: 10px; left: 10px; font-size: 11px; padding: 3px 10px; border-radius: 999px; background: rgb(33 31 26 / 72%); color: #fff; backdrop-filter: blur(4px); }
   .cover .badge.off { background: rgb(0 0 0 / 55%); }
-  .cover .ops { position: absolute; inset: auto 0 0 0; display: flex; justify-content: center; gap: 6px; padding: 12px; background: linear-gradient(transparent, rgb(20 18 14 / 68%)); opacity: 0; transform: translateY(8px); transition: opacity 0.18s, transform 0.18s; }
-  .card:hover .cover .ops { opacity: 1; transform: none; }
-  .ops button { min-width: 32px; height: 32px; padding: 0 9px; border-radius: 9px; background: rgb(255 255 255 / 92%); font-size: 12.5px; color: #33302a; transition: background 0.15s, color 0.15s; }
-  .ops button:hover { background: var(--accent); color: #fff; }
-  .ops button.primary { background: var(--accent); color: #fff; font-weight: 600; padding: 0 14px; }
-  .ops button.primary:hover { background: var(--accent-2); }
-  .card-body { padding: 12px 14px 14px; }
+  .card-body { padding: 12px 14px 10px; flex: 1; }
   .card-body h3 { margin: 0 0 6px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 22px; }
   .chip { font-size: 11px; padding: 2px 9px; border-radius: 999px; background: #f6efdf; color: #a3681f; }
   .chip.plain { background: #f0ede4; color: var(--ink-2); }
   .card.hidden-card .cover img { filter: grayscale(1); opacity: 0.55; }
   .card.hidden-card .card-body { opacity: 0.6; }
 
+  /* 常驻操作条：不悬浮、不消失、不折行 */
+  .ops { display: flex; align-items: stretch; gap: 5px; padding: 9px 12px 12px; border-top: 1px dashed var(--line); }
+  .ops button { display: flex; align-items: center; justify-content: center; gap: 5px; height: 30px; border-radius: 9px; background: #f4f0e5; color: #5d5749; font-size: 12px; font-weight: 600; white-space: nowrap; padding: 0 10px; transition: background 0.15s, color 0.15s; }
+  .ops button:hover { background: #eae4d3; color: var(--ink); }
+  .ops button .ico svg { width: 13px; height: 13px; }
+  .ops button.primary { background: var(--accent); color: #fff; flex: 1.4; }
+  .ops button.primary:hover { background: var(--accent-2); }
+  .ops button.sq { flex: none; width: 30px; padding: 0; }
+  .ops button.toggle { flex: 1; }
+  .ops button.danger:hover { background: #fde8e4; color: #d64524; }
+
   .empty { text-align: center; padding: 80px 20px; color: var(--ink-3); }
-  .empty .face { font-size: 44px; display: block; margin-bottom: 12px; }
+  .empty .face { color: #d8d1bd; margin-bottom: 12px; }
   .empty p { margin: 4px 0; }
 
   /* ---------- 编辑抽屉 ---------- */
   .overlay { position: fixed; inset: 0; background: rgb(24 22 17 / 40%); opacity: 0; pointer-events: none; transition: opacity 0.22s; z-index: 30; }
   .overlay.open { opacity: 1; pointer-events: auto; }
-  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 430px; max-width: 94vw; background: var(--card); box-shadow: -18px 0 50px rgb(24 22 17 / 18%); transform: translateX(105%); transition: transform 0.26s cubic-bezier(0.32, 0.72, 0.25, 1); z-index: 31; display: flex; flex-direction: column; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 560px; max-width: 94vw; background: var(--card); box-shadow: -18px 0 50px rgb(24 22 17 / 18%); transform: translateX(105%); transition: transform 0.26s cubic-bezier(0.32, 0.72, 0.25, 1); z-index: 31; display: flex; flex-direction: column; }
   .drawer.open { transform: none; }
-  .drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 14px; border-bottom: 1px solid var(--line); }
+  .drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px 14px; border-bottom: 1px solid var(--line); }
   .drawer-head h2 { margin: 0; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .drawer-head .x { width: 32px; height: 32px; border-radius: 10px; font-size: 15px; color: var(--ink-2); transition: background 0.15s; }
+  .drawer-head .x { width: 32px; height: 32px; border-radius: 10px; color: var(--ink-2); display: grid; place-items: center; transition: background 0.15s; }
   .drawer-head .x:hover { background: #f1eee6; }
-  .drawer-body { flex: 1; overflow-y: auto; padding: 18px 22px; }
-  .field { margin-bottom: 14px; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 16px 24px; }
+
+  /* 前端效果预览 */
+  .pv { border: 1px solid var(--line); border-radius: 14px; background: #fbf9f3; padding: 12px 14px 14px; margin-bottom: 16px; }
+  .pv-head { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: var(--ink-2); margin-bottom: 10px; }
+  .pv-head .ico { color: var(--accent); }
+  .pv-head em { font-style: normal; font-weight: 400; color: var(--ink-3); margin-left: auto; }
+  .pv-cover { position: relative; aspect-ratio: 16 / 9; border-radius: 11px; overflow: hidden; background: linear-gradient(135deg, #efe9da, #e5decb); }
+  .pv-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pv-cover .pv-tag { position: absolute; top: 8px; left: 8px; font-size: 11px; padding: 2px 10px; border-radius: 999px; background: rgb(33 31 26 / 72%); color: #fff; }
+  .pv-title { font-weight: 700; font-size: 14px; margin-top: 9px; }
+  .pv-sub { font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+  .pv-trip { display: flex; gap: 13px; }
+  .pv-poster { width: 108px; aspect-ratio: 3 / 4; border-radius: 11px; object-fit: cover; flex: none; background: linear-gradient(135deg, #efe9da, #e5decb); }
+  .pv-trip-info { min-width: 0; flex: 1; }
+  .pv-trip-top { font-size: 11px; color: var(--ink-3); letter-spacing: 1px; }
+  .pv-trip-title { font-weight: 700; font-size: 15px; margin: 3px 0 2px; }
+  .pv-trip-route { font-size: 12px; color: var(--ink-2); }
+  .pv-chips { display: flex; gap: 5px; flex-wrap: wrap; margin: 6px 0; }
+  .pv-chips span { font-size: 10.5px; padding: 1px 8px; border-radius: 999px; background: #f6efdf; color: #a3681f; }
+  .pv-chips span.plain { background: #f0ede4; color: var(--ink-2); }
+  .pv-story { font-size: 12px; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .pv-talk { font-size: 11.5px; color: var(--ink-3); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pv-none { font-size: 12px; color: var(--ink-3); }
+
+  .field { margin-bottom: 13px; }
   .field label { display: block; margin-bottom: 5px; font-size: 12.5px; color: var(--ink-2); }
   .field input[type="text"], .field input[type="number"], .field textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fbf9f3; font-size: 13px; resize: vertical; transition: box-shadow 0.15s, border-color 0.15s; }
   .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgb(255 122 26 / 14%); background: #fff; }
+  .field-row { display: flex; gap: 10px; }
+  .field-row .field { flex: 1; }
   .image-field { display: flex; align-items: center; gap: 9px; }
   .image-field .thumb { width: 52px; height: 52px; border-radius: 11px; object-fit: cover; flex: none; background: #f1eee6; border: 1px dashed var(--line); }
   .image-field input { flex: 1; min-width: 0; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fbf9f3; font-size: 12.5px; }
   .image-field input:focus { outline: none; border-color: var(--accent); background: #fff; }
-  .image-field button { flex: none; padding: 9px 14px; border-radius: 10px; background: #f3efe4; font-size: 12.5px; font-weight: 600; color: #6b6350; transition: background 0.15s, color 0.15s; }
+  .image-field button { flex: none; display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 10px; background: #f3efe4; font-size: 12.5px; font-weight: 600; color: #6b6350; white-space: nowrap; transition: background 0.15s, color 0.15s; }
   .image-field button:hover { background: var(--accent); color: #fff; }
-  .drawer-foot { padding: 14px 22px 18px; border-top: 1px solid var(--line); display: flex; gap: 10px; }
-  .btn-save { flex: 1; padding: 12px; border-radius: 12px; background: linear-gradient(135deg, #ff8b2e, #ff7a1a); color: #fff; font-weight: 700; font-size: 14px; box-shadow: 0 6px 16px rgb(255 122 26 / 30%); }
+  .auto-note { font-size: 11px; color: var(--ink-3); margin-top: 4px; }
+  .drawer-foot { padding: 14px 24px 18px; border-top: 1px solid var(--line); display: flex; gap: 10px; }
+  .btn-save { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: 12px; background: linear-gradient(135deg, #ff8b2e, #ff7a1a); color: #fff; font-weight: 700; font-size: 14px; box-shadow: 0 6px 16px rgb(255 122 26 / 30%); }
   .btn-save:hover { filter: brightness(1.05); }
   .btn-ghost { padding: 12px 18px; border-radius: 12px; background: #f1eee6; color: var(--ink-2); font-size: 13.5px; }
   .btn-ghost:hover { background: #e8e3d5; }
@@ -136,63 +170,96 @@
   }
 </style>
 </head>
-<body data-page-node-id="d7KSgE1iENNYgsCRqmPwBo">
-  <aside class="sidebar" data-page-node-id="5sv4QWHLoWtgw5Vrlogz5B">
-    <div class="brand" data-page-node-id="fuUTvXDBA9sxFpbxcYXIyv">
-      <div class="brand-logo" data-page-node-id="7qQakoVALHUdUTvSuir15p">🧡</div>
-      <div data-page-node-id="E5nMLX23f4pcJR9eWu9EmP"><b data-page-node-id="8R66Tj3h3Zis5celnjqn0O">墩墩和噗噗</b><span data-page-node-id="jBf6IL9c4mubF6tYSRPECk">内容后台 · 本地版</span></div>
+<body data-page-node-id="cTZGo6B7mWY5ubwCi7wvS5">
+  <aside class="sidebar" data-page-node-id="c60w41D480uXAitu2L1ElK">
+    <div class="brand" data-page-node-id="o6zUKMFuMqfBXnk2cexGyx">
+      <div class="brand-logo" data-icon="heart" data-page-node-id="SMHLDVzjiLfoDbFDM7fgL7"></div>
+      <div data-page-node-id="WO5atha8fxdxMRG5Azhdib"><b data-page-node-id="DztkpYXkyH0rjp3pvSjjrW">墩墩和噗噗</b><span data-page-node-id="aAAb42CPTXedqTQzGP52My">内容后台 · 本地版</span></div>
     </div>
-    <div class="nav-title" data-page-node-id="MHUEwkR24AAXi54IN07WEf">内容模块</div>
-    <nav class="nav" id="tabs" data-page-node-id="FuLTnHAuyrqOhc9guotxcw"></nav>
-    <div class="side-foot" data-page-node-id="c1SJmfuwezwV4qdHgIWkmj">
-      <a href="https://dun.zenslab.top" target="_blank" rel="noreferrer" data-page-node-id="FXY6G1KTPfc86POYv8YeBp">🌐 看线上站点</a>
-      <a href="https://github.com/zen920307-ai/dundun-pupu/actions" target="_blank" rel="noreferrer" data-page-node-id="ArsA97OTDTaNdo0LugGvzO">⚙️ 构建进度</a>
+    <div class="nav-title" data-page-node-id="768YQC3xxYrb3QSj0ue78T">内容模块</div>
+    <nav class="nav" id="tabs" data-page-node-id="BeKDAtFFE6RdrXraeE5VtP"></nav>
+    <div class="side-foot" data-page-node-id="vyyJySZwmRfBATgyjZD0cX">
+      <a href="https://dun.zenslab.top" target="_blank" rel="noreferrer" data-page-node-id="z9QieuDnHTpRxJaNVmGWDL"><span class="ico" data-icon="globe" data-page-node-id="aUJzCVm2uejusVBMc5HBrK"></span>看线上站点</a>
+      <a href="https://github.com/zen920307-ai/dundun-pupu/actions" target="_blank" rel="noreferrer" data-page-node-id="RwCk9ilOzMBum2yhkdHORP"><span class="ico" data-icon="activity" data-page-node-id="1OEis9HEybDqiIDfSDKxh3"></span>构建进度</a>
     </div>
   </aside>
 
-  <main data-page-node-id="EeSpvjjSfS4ohK7ArEDpOY">
-    <header class="topbar" data-page-node-id="lKfZ6xKGPQlPoKX990wweP">
-      <div data-page-node-id="QTPmojVMrevrw8XSqjaEYe">
-        <h2 id="modTitle" data-page-node-id="2kmAvWJ4A9mGFkqGShORgj">—</h2>
-        <div class="sub" id="modSub" data-page-node-id="HCdBJtgrhKVppEYhGeJuqq"></div>
+  <main data-page-node-id="XcZs2xH6cLJlWRh603z1to">
+    <header class="topbar" data-page-node-id="tUo6BdfkmMI4CGpjcrrRXe">
+      <div data-page-node-id="okmPW8RWwUDibDuvxIZu8P">
+        <h2 data-page-node-id="L0Nq3jkG22FZ1QidIEBmS3"><span class="ico" id="modIcon" data-page-node-id="1kg73SXFvMNFt0RbGkO4N9"></span><span id="modTitle" data-page-node-id="rL2CB0tsXuHZI9ctalsxTL">—</span></h2>
+        <div class="sub" id="modSub" data-page-node-id="JINdKher6J7NreM02EWZVt"></div>
       </div>
-      <div class="spacer" data-page-node-id="UATLHPrjyidxlFtFTuIawu"></div>
-      <div class="search-wrap" data-page-node-id="QIJj8e6z6h7FFy6g16XtJc"><input class="search" id="search" placeholder="搜索标题 / 标签…" data-page-node-id="Eo1d6xABnpU1eZtum3NyeT" /></div>
-      <button class="btn-add" id="addBtn" data-page-node-id="kuBhKnwcELZAdVSaxZ12X5">＋ 新增</button>
-      <button class="btn-publish" id="publishBtn" data-page-node-id="TBqyFbOYX0ZJoy3fWcgwUM">🚀 保存并发布<span class="dot" data-page-node-id="ZB1GSLh39hedjGXCR4NHUs"></span></button>
+      <div class="spacer" data-page-node-id="rYRIPgTIh32GDmF9UrDvIB"></div>
+      <div class="search-wrap" data-page-node-id="Llpn6uka1Y8EWwar6VvJSN"><span class="ico" data-icon="search" data-page-node-id="Jb7RlqkQ4F3MTZ05asC6Qa"></span><input class="search" id="search" placeholder="搜索标题 / 标签…" data-page-node-id="PrslnYw0KyHvh06q0Bafpc" /></div>
+      <button class="btn-add" id="addBtn" data-page-node-id="GoW1WQEFtzDYY3od85Z8wC"><span class="ico" data-icon="plus" data-page-node-id="RnuZ1S0uhQAjeiNf8a1UT3"></span>新增</button>
+      <button class="btn-publish" id="publishBtn" data-page-node-id="4hyH24dpGB72C4rocxQzM6"><span class="ico" data-icon="send" data-page-node-id="H3u9RE8Ypt4tDuGaWYYZLJ"></span><span class="lbl" data-page-node-id="wuLIjRlQRqQ1GmXomutfeE">保存并发布</span><span class="dot" data-page-node-id="4jTFJ0muPAFcZs8V9FQ6GB"></span></button>
     </header>
-    <div class="scroll" data-page-node-id="4cUZXdOygHdl68gMUwMFNA">
-      <div class="grid" id="grid" data-page-node-id="lZFOVwbwHBVI5Xn2NKA3Sb"></div>
-      <div class="empty" id="empty" style="display:none" data-page-node-id="WhPmx7GerKAn6cAqzOuTBm">
-        <span class="face" data-page-node-id="PxMZ4oHFUrcATDCgxhswgg">🐾</span>
-        <p id="emptyText" data-page-node-id="SO27QNjznhkvXvJmCE2WAR">这里还空空如也</p>
-        <button class="btn-add" id="emptyAdd" data-page-node-id="eeCEUlWnwqq5eDbMEiDBso">＋ 创建第一条</button>
+    <div class="scroll" data-page-node-id="LOFpYe07VC7BQF8qU2M0aC">
+      <div class="grid" id="grid" data-page-node-id="2yRJ1gUqpeVEiQ20uf1vbh"></div>
+      <div class="empty" id="empty" style="display:none" data-page-node-id="UAaBXrUQi5r0fA8unOXFBq">
+        <div class="face" data-page-node-id="BbmcWPsaCkI6PXL5uEXa28"><span class="ico" data-icon="paw" data-size="44" data-page-node-id="DC1QRBdt0PJPiiToGJ3lPq"></span></div>
+        <p id="emptyText" data-page-node-id="lFd7HCJ68dEc7wqsfGwwKF">这里还空空如也</p>
+        <button class="btn-add" id="emptyAdd" data-page-node-id="hF89y8zQs6xtbZ4wMqr5Eo"><span class="ico" data-icon="plus" data-page-node-id="VW9IuOjYThYdm8oEmJrFI0"></span>创建第一条</button>
       </div>
     </div>
   </main>
 
-  <div class="overlay" id="overlay" data-page-node-id="9eBksTzwiHgzoTrCtncj3H"></div>
-  <section class="drawer" id="drawer" data-page-node-id="MyWErQdnMw3H46l62Cqrep">
-    <div class="drawer-head" data-page-node-id="nvMCMd3qmgmjDgv3Yk3neB">
-      <h2 id="drawerTitle" data-page-node-id="FFq7VHsq04lG6wmTy2xGHY">编辑</h2>
-      <button class="x" id="closeDrawer" data-page-node-id="XRD7JFrrV8wPyQ1FqX0Vbs">✕</button>
+  <div class="overlay" id="overlay" data-page-node-id="ABa0pXA1twCC7SHyTpSvY4"></div>
+  <section class="drawer" id="drawer" data-page-node-id="QVVgBvNMDIMchze3nCb74s">
+    <div class="drawer-head" data-page-node-id="pbXy6n3Lcv139dM6VebqqL">
+      <h2 id="drawerTitle" data-page-node-id="TRVhGmHxi6wWh8nA1fHYIX">编辑</h2>
+      <button class="x" id="closeDrawer" data-page-node-id="9nwdAN7Bsil3BIZm7a3Uga"><span class="ico" data-icon="x" data-page-node-id="ADlyD8svFerwJ4KkoHaMDK"></span></button>
     </div>
-    <div class="drawer-body" id="form" data-page-node-id="t0rTXggWqghgD57vdE8QiN"></div>
-    <div class="drawer-foot" data-page-node-id="YjpQBoBbEuQBHw8aH3d6ge">
-      <button class="btn-save" id="saveBtn" data-page-node-id="UHmVjl0ZESFjZhwBaZu3Bx">保存</button>
-      <button class="btn-ghost" id="cancelBtn" data-page-node-id="g2tTV4t5Ozo9cfkwzHaSZ1">取消</button>
+    <div class="drawer-body" id="form" data-page-node-id="HUHRDospyhaH2Liril7smF"></div>
+    <div class="drawer-foot" data-page-node-id="3rdPGnHGdqVxizrMuBRXJM">
+      <button class="btn-save" id="saveBtn" data-page-node-id="n2FuJcdYtP1dRImByjTCUV"><span class="ico" data-icon="check" data-page-node-id="0xdyAxteWKgEXioSop8u0v"></span>保存</button>
+      <button class="btn-ghost" id="cancelBtn" data-page-node-id="VvlGCnCEn5YEFCJ1RPtFLu">取消</button>
     </div>
   </section>
 
-  <div class="pub-bar" id="pubBar" data-page-node-id="Y4ROzGrZRwM9tIb5CjmUsR"></div>
+  <div class="pub-bar" id="pubBar" data-page-node-id="GGUv8yjbjbsgRpZgrFeipJ"></div>
 
 <script>
+// ---------- 线性图标（stroke SVG，统一风格） ----------
+const ICON_PATHS = {
+  heart: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+  paw: '<circle cx="11" cy="4" r="2"/><circle cx="18" cy="7.5" r="2"/><circle cx="4.5" cy="8.5" r="2"/><path d="M7.5 20.5c-1.8-1.4-3.5-3.2-3.5-5.5 0-3 2.5-5 5.5-5s5.5 2 5.5 5c0 1-.4 1.9-1 2.7"/><path d="M13.8 19.8c1.9.7 4.5.6 5.7-1 1.3-1.8.2-4.5-1.5-6"/>',
+  image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',
+  smartphone: '<rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
+  smile: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>',
+  send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+  search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  edit: '<path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
+  'arrow-up': '<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>',
+  'arrow-down': '<line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>',
+  'eye-off': '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
+  eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+  x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
+  layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+};
+function iconSvg(name, size = 16) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name] || ''}</svg>`;
+}
+// 静态占位（data-icon）注入
+document.querySelectorAll('[data-icon]').forEach((el) => {
+  el.innerHTML = iconSvg(el.dataset.icon, Number(el.dataset.size || 16));
+});
+
 const MODULE_META = {
-  kv:         { icon: '🖼️', desc: '首页巨幕主视觉，改完发布即上线' },
-  wallpapers: { icon: '📱', desc: '手机壁纸库，访客可以打包带走' },
-  festivals:  { icon: '🎨', desc: '可爱设计 / 节日图库' },
-  emoji:      { icon: '😹', desc: '表情包预备模块，随时开工' },
-  travel:     { icon: '✈️', desc: '出逃档案：海报 + 日记 + 损友小剧场' },
+  kv:         { icon: 'image',      desc: '首页巨幕主视觉，改完发布即上线' },
+  wallpapers: { icon: 'smartphone', desc: '手机壁纸库，访客可以打包带走' },
+  festivals:  { icon: 'layers',     desc: '可爱设计 / 节日图库' },
+  emoji:      { icon: 'smile',      desc: '表情包预备模块，随时开工' },
+  travel:     { icon: 'send',       desc: '出逃档案：海报 + 日记 + 损友小剧场' },
 };
 const state = { schema: null, module: 'kv', items: [], editing: null, form: {}, dirty: false };
 const $ = (id) => document.getElementById(id);
@@ -226,7 +293,7 @@ async function init() {
   for (const [key, mod] of Object.entries(schema)) {
     const b = document.createElement('button');
     b.dataset.m = key;
-    b.innerHTML = `<span class="ico">${MODULE_META[key]?.icon || '📄'}</span><span>${mod.label}</span><span class="cnt"></span>`;
+    b.innerHTML = `<span class="ico">${iconSvg(MODULE_META[key]?.icon || 'image', 16)}</span><span>${mod.label}</span><span class="cnt"></span>`;
     b.onclick = () => switchModule(key);
     tabs.appendChild(b);
   }
@@ -246,7 +313,8 @@ async function switchModule(m) {
 function updateChrome() {
   const schema = state.schema[state.module];
   const meta = MODULE_META[state.module] || {};
-  $('modTitle').textContent = `${meta.icon || ''} ${schema.label}`.trim();
+  $('modIcon').innerHTML = iconSvg(meta.icon || 'image', 18);
+  $('modTitle').textContent = schema.label;
   $('modSub').textContent = meta.desc || '';
   document.querySelectorAll('#tabs button').forEach((b) => {
     b.querySelector('.cnt').textContent = state.items.length;
@@ -256,11 +324,11 @@ function updateChrome() {
 // ---------- 列表渲染 ----------
 function coverOf(it) {
   if (it.posterThumb || it.thumb || it.poster || it.src) return it.posterThumb || it.thumb || it.poster || it.src;
-  // 出逃档案：未传图时按站点约定路径取缩略图
   if (it.place) return '/travel/' + it.place + '-thumb.webp';
   return '';
 }
 const titleOf = (it) => it.title || it.place || '（未命名）';
+const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
 function render() {
   const q = $('search').value.trim().toLowerCase();
@@ -289,19 +357,19 @@ function render() {
     const cover = coverOf(item);
     card.innerHTML = `
       <div class="cover">
-        ${cover ? `<img src="${cover}" alt="" loading="lazy" />` : ''}
+        ${cover ? `<img src="${esc(cover)}" alt="" loading="lazy" />` : ''}
         ${item.hidden ? '<span class="badge off">已下架</span>' : `<span class="badge">#${String(realIdx + 1).padStart(2, '0')}</span>`}
-        <div class="ops">
-          <button class="primary" data-act="edit">编辑</button>
-          <button data-act="up" title="前移一位">↑</button>
-          <button data-act="down" title="后移一位">↓</button>
-          <button data-act="toggle" title="${item.hidden ? '重新上架' : '下架（前端隐藏）'}">${item.hidden ? '上架' : '下架'}</button>
-          <button data-act="del" title="删除">🗑</button>
-        </div>
       </div>
       <div class="card-body">
         <h3></h3>
         <div class="card-meta"></div>
+      </div>
+      <div class="ops">
+        <button class="primary" data-act="edit"><span class="ico">${iconSvg('edit', 13)}</span>编辑</button>
+        <button class="sq" data-act="up" title="前移一位"><span class="ico">${iconSvg('arrow-up', 13)}</span></button>
+        <button class="sq" data-act="down" title="后移一位"><span class="ico">${iconSvg('arrow-down', 13)}</span></button>
+        <button class="toggle" data-act="toggle" title="${item.hidden ? '重新上架' : '下架（前端隐藏）'}"><span class="ico">${iconSvg(item.hidden ? 'eye' : 'eye-off', 13)}</span>${item.hidden ? '上架' : '下架'}</button>
+        <button class="sq danger" data-act="del" title="删除"><span class="ico">${iconSvg('trash', 13)}</span></button>
       </div>`;
     card.querySelector('h3').textContent = titleOf(item);
     const meta = card.querySelector('.card-meta');
@@ -369,6 +437,22 @@ function nextId() {
   return `${mod.prefix}-${String(n).padStart(2, '0')}`;
 }
 
+// 给表单字段赋值并同步到界面（上传自动填充用）
+function setFormValue(key, value) {
+  state.form[key] = value;
+  const input = $('form').querySelector(`[data-fkey="${key}"]`);
+  if (input) {
+    input.value = value;
+    const box = input.closest('.image-field');
+    if (box) {
+      const img = box.querySelector('.thumb');
+      img.style.display = value ? '' : 'none';
+      img.src = value;
+    }
+  }
+  renderPreview();
+}
+
 function openDrawer(idx) {
   state.editing = idx; // null = 新增
   const mod = state.schema[state.module];
@@ -376,6 +460,16 @@ function openDrawer(idx) {
   state.form = {};
   const form = $('form');
   form.innerHTML = '';
+
+  // 前端效果预览（置顶）
+  const pv = document.createElement('div');
+  pv.className = 'pv';
+  pv.id = 'pv';
+  pv.innerHTML = `
+    <div class="pv-head"><span class="ico">${iconSvg('monitor', 14)}</span>前端效果预览<em>随填写实时更新 · 发布后线上即此效果</em></div>
+    <div id="pvBody"></div>`;
+  form.appendChild(pv);
+
   for (const f of mod.fields) {
     const v = item[f.key];
     state.form[f.key] = Array.isArray(v) ? v.join('\n') : v == null ? '' : String(v);
@@ -388,7 +482,8 @@ function openDrawer(idx) {
       const ta = document.createElement('textarea');
       ta.rows = f.key === 'story' ? 7 : 5;
       ta.value = state.form[f.key];
-      ta.oninput = () => (state.form[f.key] = ta.value);
+      ta.dataset.fkey = f.key;
+      ta.oninput = () => { state.form[f.key] = ta.value; renderPreview(); };
       wrap.appendChild(ta);
     } else if (f.type === 'image') {
       const box = document.createElement('div');
@@ -398,24 +493,34 @@ function openDrawer(idx) {
       img.style.display = state.form[f.key] ? '' : 'none';
       if (state.form[f.key]) img.src = state.form[f.key];
       const input = document.createElement('input');
-      input.placeholder = '点「上传」或直接粘贴图片地址';
+      input.placeholder = '上传一张图，其余格式自动生成；也可直接粘贴图片地址';
       input.value = state.form[f.key];
-      input.oninput = () => {
-        state.form[f.key] = input.value;
-        img.style.display = input.value ? '' : 'none';
-        img.src = input.value;
-      };
+      input.dataset.fkey = f.key;
+      input.oninput = () => { state.form[f.key] = input.value; img.style.display = input.value ? '' : 'none'; img.src = input.value; renderPreview(); };
       const btn = document.createElement('button');
-      btn.textContent = '⬆ 上传';
-      btn.onclick = () => pickFile(f.key, img, input);
+      btn.innerHTML = `<span class="ico">${iconSvg('upload', 13)}</span>上传`;
+      btn.onclick = () => pickFile(img, input);
       box.append(img, input, btn);
       wrap.appendChild(box);
+      // 自动生成说明
+      if (state.module === 'travel' && (f.key === 'poster' || f.key === 'posterThumb')) {
+        const note = document.createElement('div');
+        note.className = 'auto-note';
+        note.textContent = f.key === 'poster' ? '上传一次 → 自动生成完整海报 + 缩略图，两项都会填好' : '不用单独传，上传「完整海报」时已自动生成';
+        wrap.appendChild(note);
+      } else if (f.key === 'src') {
+        const note = document.createElement('div');
+        note.className = 'auto-note';
+        note.textContent = '上传一次 → 自动生成展示图 + 缩略图（+ 原图下载），全部自动填好';
+        wrap.appendChild(note);
+      }
     } else {
       const input = document.createElement('input');
       input.type = f.type === 'number' ? 'number' : 'text';
       if (idx == null && f.key === 'id' && state.module === 'travel') input.placeholder = '如 iceland（页面锚点用）';
       input.value = state.form[f.key];
-      input.oninput = () => (state.form[f.key] = input.value);
+      input.dataset.fkey = f.key;
+      input.oninput = () => { state.form[f.key] = input.value; renderPreview(); };
       wrap.appendChild(input);
     }
     form.appendChild(wrap);
@@ -428,39 +533,72 @@ function openDrawer(idx) {
   $('drawerTitle').textContent = idx == null ? '新增 · ' + mod.label : '编辑 · ' + titleOf(item);
   $('overlay').classList.add('open');
   $('drawer').classList.add('open');
+  renderPreview();
 }
 
-function pickFile(fieldKey, img, input) {
+// ---------- 前端效果预览 ----------
+function renderPreview() {
+  const body = $('pvBody');
+  if (!body) return;
+  const f = state.form;
+  const num = state.editing == null ? state.items.length + 1 : state.editing + 1;
+  if (state.module === 'travel') {
+    const poster = f.posterThumb || f.poster || (f.place ? '/travel/' + f.place + '-thumb.webp' : '');
+    const story1 = (f.story || '').split('\n').map((s) => s.trim()).filter(Boolean)[0] || '';
+    const talk1 = (f.talk || '').split('\n').map((s) => s.trim()).filter(Boolean)[0] || '';
+    body.innerHTML = `
+      <div class="pv-trip">
+        ${poster ? `<img class="pv-poster" src="${esc(poster)}" alt="" />` : '<div class="pv-poster"></div>'}
+        <div class="pv-trip-info">
+          <div class="pv-trip-top">出逃档案 / ${String(num).padStart(2, '0')}${f.date ? ' · ' + esc(f.date) : ''}</div>
+          <div class="pv-trip-title">${esc(f.title || f.place || '标题待填')}</div>
+          <div class="pv-trip-route">${esc([f.route, f.mode].filter(Boolean).join(' · '))}</div>
+          <div class="pv-chips">${f.tag ? `<span>${esc(f.tag)}</span>` : ''}${f.mode ? `<span class="plain">${esc(f.mode)}</span>` : ''}</div>
+          ${story1 ? `<div class="pv-story">${esc(story1)}</div>` : '<div class="pv-none">日记还没写</div>'}
+          ${talk1 ? `<div class="pv-talk">${esc(talk1)}</div>` : ''}
+        </div>
+      </div>`;
+  } else {
+    const img = f.src || f.thumb || '';
+    body.innerHTML = `
+      <div class="pv-cover">
+        ${img ? `<img src="${esc(img)}" alt="" />` : ''}
+        ${f.tag ? `<span class="pv-tag">${esc(f.tag)}</span>` : ''}
+      </div>
+      <div class="pv-title">${esc(f.title || '标题待填')}</div>
+      <div class="pv-sub">${esc([f.tag, f.width && f.height ? `${f.width} × ${f.height}` : ''].filter(Boolean).join(' · ') || '图片上传后自动回填尺寸')}</div>`;
+  }
+}
+
+// ---------- 上传：一张图自动生成全套格式 ----------
+async function uploadToServer(file) {
+  return api(`/api/upload?module=${state.module}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name) },
+    body: file,
+  });
+}
+
+function pickFile(img, input) {
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
-  fileInput.accept = 'image/*,video/*';
+  fileInput.accept = 'image/*';
   fileInput.onchange = async () => {
     const file = fileInput.files[0];
     if (!file) return;
-    toast('上传中：' + file.name, 60000);
+    toast('上传并生成格式中：' + file.name, 60000);
     try {
-      const data = await api(`/api/upload?module=${state.module}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name) },
-        body: file,
-      });
-      state.form[fieldKey] = data.path;
-      input.value = data.path;
-      img.src = data.path;
-      img.style.display = '';
-      if (fieldKey === 'src' || fieldKey === 'thumb') {
-        const probe = new Image();
-        probe.onload = () => {
-          if (probe.naturalWidth) {
-            state.form.width = String(probe.naturalWidth);
-            state.form.height = String(probe.naturalHeight);
-            const nums = $('form').querySelectorAll('input[type="number"]');
-            if (nums.length >= 2) { nums[0].value = state.form.width; nums[1].value = state.form.height; }
-          }
-        };
-        probe.src = data.path;
+      const data = await uploadToServer(file);
+      if (state.module === 'travel') {
+        setFormValue('poster', data.main);
+        if (data.thumb) setFormValue('posterThumb', data.thumb);
+      } else {
+        setFormValue('src', data.main);
+        if (data.thumb) setFormValue('thumb', data.thumb);
+        if (data.original) setFormValue('original', data.original);
+        if (data.width) { setFormValue('width', String(data.width)); setFormValue('height', String(data.height)); }
       }
-      toast('上传成功，记得保存');
+      toast(data.warning || '已自动生成全套格式，记得保存');
     } catch (e) {
       toast('上传失败：' + e.message, 8000);
     }
@@ -499,15 +637,16 @@ async function save() {
   updateChrome();
   render();
   closeDrawer();
-  toast('已保存到本地。点「🚀 保存并发布」上线');
+  toast('已保存到本地。点「保存并发布」上线');
 }
 
 // ---------- 发布 ----------
 async function publish() {
   const btn = $('publishBtn');
   btn.disabled = true;
-  const old = btn.childNodes[0].textContent;
-  btn.childNodes[0].textContent = ' 发布中… ';
+  const lbl = btn.querySelector('.lbl');
+  const old = lbl.textContent;
+  lbl.textContent = '发布中…';
   try {
     const data = await api('/api/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
     state.dirty = false;
@@ -517,7 +656,7 @@ async function publish() {
     toast('发布失败：' + e.message, 9000);
   } finally {
     btn.disabled = false;
-    btn.childNodes[0].textContent = old;
+    lbl.textContent = old;
   }
 }
 
