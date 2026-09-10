@@ -135,7 +135,7 @@ function Pass({
       >
         <Image
           unoptimized
-          src={isDundun ? '/media/dundun-tag.png' : '/media/pupu-tag.png'}
+          src={isDundun ? '/media/dundun-tag.webp' : '/media/pupu-tag.webp'}
           width={1254}
           height={1254}
           alt={isDundun ? '墩墩行李吊牌' : '噗噗行李吊牌'}

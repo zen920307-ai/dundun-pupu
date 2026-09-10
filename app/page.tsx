@@ -193,7 +193,7 @@ export default function Home() {
           }}
           muted={muted}
           playsInline
-          preload="auto"
+          preload="metadata"
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
           onEnded={() => {
@@ -374,7 +374,7 @@ export default function Home() {
                 <Image
                   unoptimized
                   className="duo-art"
-                  src="/media/duo.png"
+                  src="/media/duo.webp"
                   alt="墩墩戴橙色毛线帽，和奶白色的噗噗靠在一起"
                   width="1024"
                   height="1024"
@@ -434,7 +434,7 @@ export default function Home() {
         <Image
           unoptimized
           className="manifesto-peeker"
-          src="/media/pupu-sticker.png"
+          src="/media/pupu-sticker.webp"
           width={800}
           height={1000}
           alt=""
@@ -538,7 +538,7 @@ export default function Home() {
               <Image
                 unoptimized
                 className="wp-buddy dundun"
-                src="/media/stickers/dundun-head.png"
+                src="/media/stickers/dundun-head.webp"
                 width={200}
                 height={220}
                 alt=""
@@ -546,7 +546,7 @@ export default function Home() {
               <Image
                 unoptimized
                 className="wp-buddy pupu"
-                src="/media/pupu-sticker.png"
+                src="/media/pupu-sticker.webp"
                 width={140}
                 height={160}
                 alt=""
@@ -613,7 +613,7 @@ export default function Home() {
           </div>
           <Image
             className="creator-mascot"
-            src="/media/dundun-sticker.png"
+            src="/media/dundun-sticker.webp"
             width={170}
             height={190}
             alt=""
@@ -643,7 +643,7 @@ export default function Home() {
           <Image
             unoptimized
             className="peek"
-            src="/media/peek.png"
+            src="/media/peek.webp"
             alt="墩墩和噗噗一起探头"
             width="1024"
             height="1024"

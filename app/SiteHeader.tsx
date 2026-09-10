@@ -111,7 +111,7 @@ export default function SiteHeader({
     <header className="site-header">
       <a className="site-logo" href="/" aria-label="墩墩和噗噗首页">
         <Image
-          src="/media/logo-flat.png"
+          src="/media/logo-flat.webp"
           width={64}
           height={64}
           alt=""

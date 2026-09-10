@@ -88,7 +88,7 @@ export default function Collection({ kind }: { kind: 'kv' | 'wallpapers' }) {
               {wallpaper ? '贴身陪伴\n允许带走' : '全员可爱\n禁止正经'}
             </span>
             <Image
-              src={wallpaper ? '/media/keychain-sticker.png' : '/media/duo.png'}
+              src={wallpaper ? '/media/keychain-sticker.webp' : '/media/duo.webp'}
               width={330}
               height={350}
               alt=""

@@ -61,7 +61,7 @@ export default function FestivalGallery({ motion }: { motion: boolean }) {
         </p>
         <Image
           className="festival-mascot"
-          src="/media/duo.png"
+          src="/media/duo.webp"
           width={260}
           height={260}
           alt=""

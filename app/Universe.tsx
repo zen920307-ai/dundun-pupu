@@ -151,14 +151,14 @@ const moodScenes = [
 ] as const;
 // Actual transparent cutouts, derived from the original IP sticker artwork.
 const moodStickerCovers = [
-  '/media/stickers/mood-duo-huddle-cutout.png',
-  '/media/stickers/mood-sticker-02-cutout.png',
-  '/media/stickers/mood-sticker-03-cutout.png',
-  '/media/stickers/mood-sticker-04-cutout.png',
-  '/media/stickers/mood-sticker-05-cutout.png',
-  '/media/stickers/mood-sticker-06-cutout.png',
-  '/media/stickers/mood-sticker-07-cutout.png',
-  '/media/stickers/mood-sticker-08-cutout.png',
+  '/media/stickers/mood-duo-huddle-cutout.webp',
+  '/media/stickers/mood-sticker-02-cutout.webp',
+  '/media/stickers/mood-sticker-03-cutout.webp',
+  '/media/stickers/mood-sticker-04-cutout.webp',
+  '/media/stickers/mood-sticker-05-cutout.webp',
+  '/media/stickers/mood-sticker-06-cutout.webp',
+  '/media/stickers/mood-sticker-07-cutout.webp',
+  '/media/stickers/mood-sticker-08-cutout.webp',
 ] as const;
 const dealMoodStickers = (draw: () => number, focus: number) => {
   const dealt = drawRound(draw, 4);
@@ -343,7 +343,7 @@ export default function Universe({ motion }: { motion: boolean }) {
         <div className="nonsense-content">
           <Image
             className="nonsense-mascot"
-            src="/media/pupu-sticker.png"
+            src="/media/pupu-sticker.webp"
             width={170}
             height={190}
             alt=""
@@ -387,7 +387,7 @@ export default function Universe({ motion }: { motion: boolean }) {
         <div className="archive-heading reveal">
           <Image
             className="archive-mascot"
-            src="/media/keychain-sticker.png"
+            src="/media/keychain-sticker.webp"
             width={180}
             height={200}
             alt=""

@@ -128,7 +128,7 @@ export default function Playground({ motion }: { motion: boolean }) {
       </div>
       <Sticker
         className="playground-sticker"
-        src="/media/pillow-sticker.png"
+        src="/media/pillow-sticker.webp"
         label="戳戳趴着的墩墩抱枕"
       />
       <div className="playground-body">

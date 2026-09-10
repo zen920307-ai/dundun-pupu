@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: '墩墩和噗噗 — 不太正经，但超要好。',
   description:
     '设计师拯的原创 IP。一个不想营业，一个非要贴贴。欢迎来到墩墩和噗噗的胡闹现场。',
-  icons: { icon: '/media/logo-flat.png', apple: '/media/logo-flat.png' },
+  icons: { icon: '/favicon.svg', apple: '/favicon.svg' },
 };
 export default function RootLayout({
   children,

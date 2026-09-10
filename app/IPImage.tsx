@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 // Asset revision changes the URL after an unfinished-preview 404, so an existing
 // browser tab does not retain a broken image at the same address after HMR.
-const ASSET_REVISION = 'origin-tags-i';
+const ASSET_REVISION = 'webp-20260910';
 export default function IPImage(props: ImageProps) {
   const [failedSource, setFailedSource] = useState<string | null>(null);
   const source = typeof props.src === 'string' ? props.src : '';
