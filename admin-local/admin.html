@@ -473,6 +473,7 @@ function openDrawer(idx) {
   for (const f of mod.fields) {
     const v = item[f.key];
     state.form[f.key] = Array.isArray(v) ? v.join('\n') : v == null ? '' : String(v);
+    if (f.auto) continue; // 自动生成字段（缩略图/原图/宽高）不显示，保存时照常带上
     const wrap = document.createElement('div');
     wrap.className = 'field';
     const label = document.createElement('label');

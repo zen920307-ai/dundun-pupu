@@ -1,15 +1,15 @@
-' 墩墩和噗噗 · 内容后台 隐藏启动脚本
-' 双击桌面快捷方式 → 后台服务在后台启动（无黑窗口）→ 自动打开浏览器
-' 若服务已在运行，则只打开浏览器页面，不会重复启动
+' dundun-pupu admin launcher
+' NOTE: keep this file ASCII-only. wscript reads .vbs as ANSI,
+' so any non-ASCII character in the paths would break the launcher.
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set sh = CreateObject("WScript.Shell")
 
-Dim baseDir, nodeExe
-baseDir = "K:\墩墩和噗噗\dundun-pupu-site"
-nodeExe = "C:\Users\Administrator\.workbuddy\binaries\node\versions\22.22.2-2\node.exe"
+' derive project dir from this script's location (no Chinese literals here)
+scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
+baseDir = fso.GetParentFolderName(scriptDir)
 
+nodeExe = "C:\Users\Administrator\.workbuddy\binaries\node\versions\22.22.2-2\node.exe"
 If Not fso.FileExists(nodeExe) Then
-  ' 找不到固定版本就用系统 PATH 里的 node
   nodeExe = "node.exe"
 End If
 

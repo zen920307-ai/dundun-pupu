@@ -24,11 +24,11 @@ const MODULES = {
     fields: [
       { key: 'title', label: '标题', type: 'text' },
       { key: 'tag', label: '标签 / 主题', type: 'text' },
-      { key: 'src', label: '展示图', type: 'image' },
-      { key: 'thumb', label: '缩略图（列表用）', type: 'image' },
-      { key: 'original', label: '原图（下载用，可空）', type: 'image' },
-      { key: 'width', label: '宽 px', type: 'number' },
-      { key: 'height', label: '高 px', type: 'number' },
+      { key: 'src', label: '图片', type: 'image' },
+      { key: 'thumb', label: '缩略图', type: 'image', auto: true },
+      { key: 'original', label: '原图', type: 'image', auto: true },
+      { key: 'width', label: '宽 px', type: 'number', auto: true },
+      { key: 'height', label: '高 px', type: 'number', auto: true },
     ],
   },
   wallpapers: {
@@ -37,11 +37,11 @@ const MODULES = {
     fields: [
       { key: 'title', label: '标题', type: 'text' },
       { key: 'tag', label: '标签 / 主题', type: 'text' },
-      { key: 'src', label: '展示图', type: 'image' },
-      { key: 'thumb', label: '缩略图（列表用）', type: 'image' },
-      { key: 'original', label: '原图（下载用，可空）', type: 'image' },
-      { key: 'width', label: '宽 px', type: 'number' },
-      { key: 'height', label: '高 px', type: 'number' },
+      { key: 'src', label: '图片', type: 'image' },
+      { key: 'thumb', label: '缩略图', type: 'image', auto: true },
+      { key: 'original', label: '原图', type: 'image', auto: true },
+      { key: 'width', label: '宽 px', type: 'number', auto: true },
+      { key: 'height', label: '高 px', type: 'number', auto: true },
     ],
   },
   festivals: {
@@ -50,11 +50,11 @@ const MODULES = {
     fields: [
       { key: 'title', label: '标题', type: 'text' },
       { key: 'tag', label: '标签 / 主题', type: 'text' },
-      { key: 'src', label: '展示图', type: 'image' },
-      { key: 'thumb', label: '缩略图（列表用）', type: 'image' },
-      { key: 'original', label: '原图（下载用，可空）', type: 'image' },
-      { key: 'width', label: '宽 px', type: 'number' },
-      { key: 'height', label: '高 px', type: 'number' },
+      { key: 'src', label: '图片', type: 'image' },
+      { key: 'thumb', label: '缩略图', type: 'image', auto: true },
+      { key: 'original', label: '原图', type: 'image', auto: true },
+      { key: 'width', label: '宽 px', type: 'number', auto: true },
+      { key: 'height', label: '高 px', type: 'number', auto: true },
     ],
   },
   emoji: {
@@ -63,10 +63,10 @@ const MODULES = {
     fields: [
       { key: 'title', label: '标题', type: 'text' },
       { key: 'tag', label: '标签 / 主题', type: 'text' },
-      { key: 'src', label: '展示图', type: 'image' },
-      { key: 'thumb', label: '缩略图（列表用）', type: 'image' },
-      { key: 'width', label: '宽 px', type: 'number' },
-      { key: 'height', label: '高 px', type: 'number' },
+      { key: 'src', label: '图片', type: 'image' },
+      { key: 'thumb', label: '缩略图', type: 'image', auto: true },
+      { key: 'width', label: '宽 px', type: 'number', auto: true },
+      { key: 'height', label: '高 px', type: 'number', auto: true },
     ],
   },
   travel: {
@@ -83,8 +83,8 @@ const MODULES = {
       { key: 'story', label: '日记正文（每行一段）', type: 'textarea' },
       { key: 'talk', label: '损友小剧场（每行一句，如「墩墩：……」）', type: 'textarea' },
       { key: 'receipt', label: '账单 / 战利品（一行）', type: 'text' },
-      { key: 'poster', label: '完整海报（不传则走 /travel/地点.webp）', type: 'image' },
-      { key: 'posterThumb', label: '海报缩略图（不传则走约定路径）', type: 'image' },
+      { key: 'poster', label: '海报（上传一张即可，缩略图自动生成）', type: 'image' },
+      { key: 'posterThumb', label: '海报缩略图', type: 'image', auto: true },
     ],
   },
 };
@@ -236,7 +236,7 @@ async function handleApi(req, res, url) {
       if (!push.ok) return send(500, { ok: false, error: 'git push 失败：' + push.output });
       return send(200, {
         ok: true,
-        message: `已推送，GitHub Pages 约 1~3 分钟后更新。${push.output.slice(-200)}`,
+        message: `已推送，GitHub 正在构建上线（通常 3~10 分钟），构建进度见仓库 Actions 页`,
       });
     }
 
