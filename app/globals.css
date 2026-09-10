@@ -207,7 +207,8 @@ svg {
   height: calc(100svh - 88px);
   max-height: 1180px;
   color: white;
-  background: #23221f;
+  /* The 55 KB WebP is painted before video metadata or client JS arrive. */
+  background: #23221f url('/media/poster-enhanced.webp') center / cover no-repeat;
 }
 .hero-video,
 .hero-shade {

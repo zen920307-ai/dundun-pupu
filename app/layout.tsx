@@ -18,6 +18,13 @@ export default function RootLayout({
       <head>
         <link
           rel="preload"
+          href="/media/poster-enhanced.webp"
+          as="image"
+          type="image/webp"
+          fetchPriority="high"
+        />
+        <link
+          rel="preload"
           href="/fonts/duo-mochi.woff2"
           as="font"
           type="font/woff2"
