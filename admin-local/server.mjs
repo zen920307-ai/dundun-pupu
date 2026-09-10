@@ -247,6 +247,21 @@ const server = http.createServer((req, res) => {
   return handleStatic(res, url);
 });
 
+function openBrowser() {
+  const cmd = process.platform === 'win32' ? `start "" http://127.0.0.1:${PORT}` : `open http://127.0.0.1:${PORT}`;
+  exec(cmd, { windowsHide: true }, () => {});
+}
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    // 已经有一个后台在跑：直接把页面拉起来就行
+    openBrowser();
+    process.exit(0);
+  }
+  throw err;
+});
+
 server.listen(PORT, '127.0.0.1', () => {
   console.log('内容后台已启动：http://127.0.0.1:%s （Ctrl+C 关闭；只监听本机，外部无法访问）', PORT);
+  openBrowser();
 });
