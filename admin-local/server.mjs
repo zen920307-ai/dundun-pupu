@@ -109,11 +109,13 @@ function gitExec(cmd) {
   });
 }
 
-// 长耗时命令（构建/部署）
+// 长耗时命令（构建/部署）；剥离 NODE_OPTIONS，避免外部注入的 require 钩子干扰构建
 const CF_WORKER_NAME = 'dundun-pupu'; // dun.zenslab.top 绑定的 Worker
 function runCmd(cmd, timeoutMs = 300000) {
+  const env = { ...process.env };
+  delete env.NODE_OPTIONS;
   return new Promise((resolve) => {
-    exec(cmd, { cwd: ROOT, windowsHide: true, timeout: timeoutMs }, (err, stdout, stderr) => {
+    exec(cmd, { cwd: ROOT, windowsHide: true, timeout: timeoutMs, env }, (err, stdout, stderr) => {
       resolve({ ok: !err, output: ((stdout || '') + (stderr || '')).trim() });
     });
   });
