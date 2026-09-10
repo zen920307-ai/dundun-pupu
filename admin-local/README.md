@@ -50,4 +50,5 @@
 ## 注意
 
 - **大视频别从这里传**：GitHub 单文件限 100MB，仓库建议保持 2GB 以内；大素材继续手动处理
+- Worker 名 `dundun-pupu` 与域名绑定关系写在 Cloudflare 控制台；换名需同步改 `server.mjs` 的 `CF_WORKER_NAME`
 - 备用方案（云端秒级实时，腾讯云开发）已在 git 历史中验证过结构，需要时可恢复

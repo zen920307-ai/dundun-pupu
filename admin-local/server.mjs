@@ -5,6 +5,7 @@
 // ============================================================
 import http from 'node:http';
 import fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { exec } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -103,6 +104,16 @@ async function writeModule(module, items) {
 function gitExec(cmd) {
   return new Promise((resolve) => {
     exec(cmd, { cwd: ROOT, windowsHide: true, timeout: 120000 }, (err, stdout, stderr) => {
+      resolve({ ok: !err, output: ((stdout || '') + (stderr || '')).trim() });
+    });
+  });
+}
+
+// 长耗时命令（构建/部署）
+const CF_WORKER_NAME = 'dundun-pupu'; // dun.zenslab.top 绑定的 Worker
+function runCmd(cmd, timeoutMs = 300000) {
+  return new Promise((resolve) => {
+    exec(cmd, { cwd: ROOT, windowsHide: true, timeout: timeoutMs }, (err, stdout, stderr) => {
       resolve({ ok: !err, output: ((stdout || '') + (stderr || '')).trim() });
     });
   });
@@ -220,23 +231,32 @@ async function handleApi(req, res, url) {
       });
     }
 
-    // 发布：git add + commit + push
+    // 发布：git 存档 + 本地构建 + wrangler 部署到 Cloudflare Worker（约 1 分钟后线上生效）
     if (url.pathname === '/api/publish' && req.method === 'POST') {
       const { message } = await body().catch(() => ({ message: '' }));
-      const add = await gitExec('git add -A');
-      if (!add.ok) return send(500, { ok: false, error: 'git add 失败：' + add.output });
+      // 1. git 存档（有改动才提交；推送失败不阻塞上线）
+      await gitExec('git add -A');
       const status = await gitExec('git status --porcelain');
-      if (!status.output.trim()) {
-        return send(200, { ok: true, message: '没有需要发布的改动（云端已是最新）' });
+      let archiveNote = '无内容改动，跳过 git 存档';
+      if (status.output.trim()) {
+        const commitMsg = (message || `内容更新 ${new Date().toLocaleString('zh-CN')}`).replace(/"/g, "'");
+        const commit = await gitExec(`git commit -m "${commitMsg}"`);
+        if (!commit.ok) return send(500, { ok: false, error: 'git commit 失败：' + commit.output });
+        const push = await gitExec(`git push origin ${GIT_BRANCH}`);
+        archiveNote = push.ok ? '已推送 GitHub 存档' : 'GitHub 推送失败（不影响上线）：' + push.output.slice(-120);
       }
-      const commitMsg = (message || `内容更新 ${new Date().toLocaleString('zh-CN')}`).replace(/"/g, "'");
-      const commit = await gitExec(`git commit -m "${commitMsg}"`);
-      if (!commit.ok) return send(500, { ok: false, error: 'git commit 失败：' + commit.output });
-      const push = await gitExec(`git push origin ${GIT_BRANCH}`);
-      if (!push.ok) return send(500, { ok: false, error: 'git push 失败：' + push.output });
+      // 2. 构建（vinext build）
+      const build = await runCmd('npm run build', 300000);
+      if (!build.ok) return send(500, { ok: false, error: '构建失败：' + build.output.slice(-500) });
+      // 3. 部署到 Cloudflare Worker（dun.zenslab.top 绑定 dundun-pupu）
+      const deploy = await runCmd(
+        `npx wrangler deploy --config dist/server/wrangler.json --name ${CF_WORKER_NAME}`,
+        600000,
+      );
+      if (!deploy.ok) return send(500, { ok: false, error: 'Cloudflare 部署失败：' + deploy.output.slice(-500) });
       return send(200, {
         ok: true,
-        message: `已推送，GitHub 正在构建上线（通常 3~10 分钟），构建进度见仓库 Actions 页`,
+        message: `已上线 Cloudflare，几秒内生效。${archiveNote}`,
       });
     }
 
@@ -299,18 +319,35 @@ const server = http.createServer((req, res) => {
   return handleStatic(res, url);
 });
 
-function openBrowser() {
-  const cmd = process.platform === 'win32' ? `start "" http://127.0.0.1:${PORT}` : `open http://127.0.0.1:${PORT}`;
-  exec(cmd, { windowsHide: true }, () => {});
+function openBrowser(done) {
+  const url = `http://127.0.0.1:${PORT}`;
+  // 依次尝试显式浏览器路径，避免默认浏览器关联异常时静默失败
+  const candidates = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+  ];
+  const browser = candidates.find((p) => existsSync(p));
+  // --new-window：Chrome/Edge 已在运行时也强制弹出新窗口并置前，
+  // 而不是把页面塞进已存在的（可能最小化的）窗口里当标签页
+  const cmd = browser ? `"${browser}" --new-window ${url}` : `start "" ${url}`;
+  exec(cmd, { windowsHide: true }, (err) => {
+    if (err) console.error('打开浏览器失败：', err.message, '（可手动访问 ' + url + '）');
+    if (done) done();
+  });
 }
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    // 已经有一个后台在跑：直接把页面拉起来就行
-    openBrowser();
-    process.exit(0);
+    // 已经有一个后台在跑：等浏览器拉起来之后再退出
+    // （不能立刻 exit，否则 exec 还没完成就被杀，Chrome 可能弹不出来）
+    console.log('后台已在运行，直接打开页面 ' + new Date().toLocaleString('zh-CN'));
+    openBrowser(() => process.exit(0));
+    setTimeout(() => process.exit(0), 8000); // 兜底：浏览器无响应时也确保退出
+  } else {
+    throw err;
   }
-  throw err;
 });
 
 server.listen(PORT, '127.0.0.1', () => {

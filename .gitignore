@@ -40,3 +40,4 @@ next-env.d.ts
 /ipv4-proxy.log
 /.playwright-cli/
 *.tsbuildinfo
+admin-local/admin.log

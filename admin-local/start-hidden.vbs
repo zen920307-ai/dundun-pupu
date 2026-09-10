@@ -14,4 +14,6 @@ If Not fso.FileExists(nodeExe) Then
 End If
 
 sh.CurrentDirectory = baseDir
-sh.Run """" & nodeExe & """ admin-local\server.mjs", 0, False
+
+' run node hidden via cmd so output lands in a log file (admin-local\admin.log)
+sh.Run "%COMSPEC% /s /c """"" & nodeExe & """ admin-local\server.mjs >> admin-local\admin.log 2>&1""", 0, False
