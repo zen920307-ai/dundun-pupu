@@ -70,8 +70,8 @@ export default function TravelJournal() {
           {trips.map((trip, index) => <article className="trip-card" id={'trip-' + trip.id} key={trip.id}>
             <div className="trip-card-top"><span>出逃档案 / {String(index + 1).padStart(2,'0')}</span><time dateTime={trip.date.replace('.', '-')}>{trip.date}</time></div>
             <div className="trip-overview">
-              <button type="button" className="trip-photo" onClick={() => setLightbox({ src: '/travel/' + trip.place + '.webp', place: trip.place, date: trip.date })} aria-label={'放大查看' + trip.place + '完整海报'} aria-haspopup="dialog">
-                <Image src={'/travel/' + trip.place + '-thumb.webp'} width={480} height={trip.id === 'iceland' ? 640 : 720} alt={'墩墩和噗噗 · ' + trip.place + '旅行海报'} loading="lazy" />
+              <button type="button" className="trip-photo" onClick={() => setLightbox({ src: trip.poster ?? '/travel/' + trip.place + '.webp', place: trip.place, date: trip.date })} aria-label={'放大查看' + trip.place + '完整海报'} aria-haspopup="dialog">
+                <Image src={trip.posterThumb ?? '/travel/' + trip.place + '-thumb.webp'} width={480} height={trip.id === 'iceland' ? 640 : 720} alt={'墩墩和噗噗 · ' + trip.place + '旅行海报'} loading="lazy" />
                 <span>点我看大海报 <ArrowUpRight size={16}/></span>
               </button>
               <div className="trip-intro">

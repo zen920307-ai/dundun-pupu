@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>墩墩和噗噗 · 内容后台</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f7f5f0; color: #22221f; font: 14px/1.6 "Microsoft YaHei", system-ui, sans-serif; }
+  button { font: inherit; cursor: pointer; }
+  input, textarea { font: inherit; }
+
+  .topbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 20px; background: #fff; border-bottom: 1px solid #e8e4da; position: sticky; top: 0; z-index: 5; }
+  .topbar h1 { margin: 0; font-size: 17px; white-space: nowrap; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+  .tabs button { padding: 7px 14px; border: 1px solid transparent; border-radius: 999px; background: transparent; font-size: 13.5px; color: #55524a; }
+  .tabs button:hover { background: #f1eee6; }
+  .tabs button.active { background: #22221f; color: #fff; }
+  .topbar-actions { display: flex; gap: 8px; }
+  .topbar-actions button { padding: 7px 13px; border: 1px solid #ddd8cc; border-radius: 9px; background: #fff; font-size: 13px; color: #3c3a34; }
+  .topbar-actions button:hover { border-color: #ff7a1a; color: #c25a0a; }
+  .topbar-actions .publish { background: #ff7a1a; border-color: #ff7a1a; color: #fff; font-weight: 600; }
+  .topbar-actions .publish:hover { background: #e96c0e; }
+  .topbar-actions button:disabled { opacity: 0.5; cursor: default; }
+
+  .body { display: flex; align-items: flex-start; gap: 16px; max-width: 1180px; margin: 0 auto; padding: 20px; }
+  .list { flex: 1; min-width: 0; background: #fff; border: 1px solid #e8e4da; border-radius: 14px; padding: 12px; }
+  .list-tools { display: flex; gap: 8px; margin-bottom: 10px; }
+  .search { flex: 1; min-width: 0; padding: 8px 11px; border: 1px solid #ddd8cc; border-radius: 9px; background: #fbfaf7; font-size: 13px; }
+  .btn-primary { padding: 8px 14px; border: 0; border-radius: 9px; background: #ff7a1a; color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .btn-primary:hover { background: #e96c0e; }
+  .hint { padding: 14px 6px; font-size: 13.5px; color: #8a857a; }
+  .list ul { list-style: none; margin: 0; padding: 0; }
+  .list li { display: flex; align-items: center; gap: 10px; padding: 7px 6px; border-radius: 10px; }
+  .list li:hover { background: #faf8f3; }
+  .list li.off .item-text { opacity: 0.45; }
+  .list img, .thumb-empty { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex: none; background: #f1eee6; }
+  .item-text { flex: 1; min-width: 0; }
+  .item-text b { display: block; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item-text span { font-size: 12px; color: #8a857a; }
+  .item-actions { display: flex; gap: 4px; opacity: 0.25; transition: opacity 0.15s; }
+  .list li:hover .item-actions, .list li:focus-within .item-actions { opacity: 1; }
+  .item-actions button { width: 28px; height: 28px; padding: 0; border: 1px solid #e4e0d6; border-radius: 7px; background: #fff; font-size: 12px; color: #55524a; }
+  .item-actions button:hover:not(:disabled) { border-color: #ff7a1a; color: #c25a0a; }
+  .item-actions button:disabled { opacity: 0.35; cursor: default; }
+
+  .editor { width: 400px; flex: none; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; background: #fff; border: 1px solid #e8e4da; border-radius: 14px; padding: 16px; display: none; }
+  .editor.open { display: block; }
+  .editor header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .editor h2 { margin: 0; font-size: 15.5px; }
+  .editor header button { padding: 5px 11px; border: 1px solid #ddd8cc; border-radius: 8px; background: #fff; font-size: 12.5px; }
+  .field { margin-bottom: 10px; }
+  .field label { display: block; margin-bottom: 4px; font-size: 12.5px; color: #6b675e; }
+  .field input[type="text"], .field input[type="number"], .field textarea { width: 100%; padding: 8px 10px; border: 1px solid #ddd8cc; border-radius: 9px; background: #fbfaf7; font-size: 13px; resize: vertical; }
+  .field input:focus, .field textarea:focus { outline: 2px solid #ff7a1a; outline-offset: -1px; }
+  .image-field { display: flex; align-items: center; gap: 8px; }
+  .image-field img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex: none; background: #f1eee6; }
+  .image-field input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #ddd8cc; border-radius: 9px; background: #fbfaf7; font-size: 13px; }
+  .image-field button { flex: none; padding: 8px 12px; border: 1px solid #ddd8cc; border-radius: 9px; background: #fff; font-size: 12.5px; }
+  .image-field button:hover { border-color: #ff7a1a; color: #c25a0a; }
+  .editor footer { display: flex; gap: 8px; margin-top: 14px; }
+  .editor footer button { padding: 10px 16px; border: 1px solid #ddd8cc; border-radius: 9px; background: #fff; font-size: 13.5px; }
+  .editor footer .btn-primary { border: 0; }
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); padding: 10px 20px; border-radius: 999px; background: #22221f; color: #fff; font-size: 13.5px; box-shadow: 0 10px 26px rgb(34 34 31 / 22%); z-index: 20; max-width: 80vw; display: none; }
+  @media (max-width: 900px) { .body { flex-direction: column; } .editor { width: 100%; position: static; max-height: none; } }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <h1>内容后台</h1>
+    <nav class="tabs" id="tabs"></nav>
+    <div class="topbar-actions">
+      <button class="publish" id="publishBtn">🚀 保存并发布</button>
+      <a href="https://dun.zenslab.top" target="_blank" rel="noreferrer" style="padding:7px 13px;border:1px solid #ddd8cc;border-radius:9px;font-size:13px;color:#3c3a34;text-decoration:none">看线上 ↗</a>
+    </div>
+  </header>
+
+  <div class="body">
+    <aside class="list">
+      <div class="list-tools">
+        <input class="search" id="search" placeholder="搜标题 / 标签…" />
+        <button class="btn-primary" id="addBtn">+ 新增</button>
+      </div>
+      <p class="hint" id="hint">加载中…</p>
+      <ul id="list"></ul>
+    </aside>
+
+    <section class="editor" id="editor">
+      <header>
+        <h2 id="editorTitle">编辑</h2>
+        <button id="closeEditor">收起</button>
+      </header>
+      <div id="form"></div>
+      <footer>
+        <button class="btn-primary" id="saveBtn">保存</button>
+        <button id="cancelBtn">取消</button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+const state = { schema: null, module: 'kv', items: [], editing: null, form: {} };
+const $ = (id) => document.getElementById(id);
+
+function toast(msg, ms = 3200) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => (el.style.display = 'none'), ms);
+}
+
+async function api(pathname, opts) {
+  const res = await fetch(pathname, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.ok === false) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+// ---------- 模块切换 ----------
+async function init() {
+  const { schema } = await api('/api/schema');
+  state.schema = schema;
+  const tabs = $('tabs');
+  for (const [key, mod] of Object.entries(schema)) {
+    const b = document.createElement('button');
+    b.textContent = mod.label;
+    b.onclick = () => switchModule(key);
+    b.dataset.m = key;
+    tabs.appendChild(b);
+  }
+  await switchModule('kv');
+}
+
+async function switchModule(m) {
+  state.module = m;
+  closeEditor();
+  document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.m === m));
+  const { items } = await api('/api/data?module=' + m);
+  state.items = items;
+  renderList();
+}
+
+// ---------- 列表 ----------
+function coverOf(item) {
+  return item.posterThumb || item.thumb || item.poster || item.src || '';
+}
+function titleOf(item) {
+  return item.title || item.place || '（未命名）';
+}
+
+function renderList() {
+  const q = $('search').value.trim().toLowerCase();
+  const list = $('list');
+  list.innerHTML = '';
+  const shown = state.items.filter((it) => {
+    if (!q) return true;
+    return [it.title, it.tag, it.place, it.date].some((v) => typeof v === 'string' && v.toLowerCase().includes(q));
+  });
+  $('hint').style.display = shown.length ? 'none' : 'block';
+  $('hint').textContent = state.items.length ? '没有匹配的内容' : '还没有内容，点「+ 新增」创建第一条。';
+  shown.forEach((item) => {
+    const realIdx = state.items.indexOf(item);
+    const li = document.createElement('li');
+    if (item.hidden) li.className = 'off';
+    const cover = coverOf(item);
+    li.innerHTML =
+      (cover ? `<img src="${cover}" alt="" loading="lazy" />` : '<span class="thumb-empty"></span>') +
+      `<div class="item-text"><b></b><span></span></div>
+       <div class="item-actions">
+         <button title="上移">↑</button><button title="下移">↓</button>
+         <button title="${item.hidden ? '上架' : '下架'}">${item.hidden ? '架' : '下'}</button>
+         <button title="编辑">编</button><button title="删除">删</button>
+       </div>`;
+    li.querySelector('b').textContent = titleOf(item);
+    li.querySelector('span').textContent =
+      [item.tag, item.date, item.hidden ? '已下架' : ''].filter(Boolean).join(' · ');
+    const [up, down, toggle, edit, del] = li.querySelectorAll('.item-actions button');
+    up.onclick = () => move(realIdx, -1);
+    down.onclick = () => move(realIdx, 1);
+    toggle.onclick = () => toggleHidden(realIdx);
+    edit.onclick = () => openEditor(realIdx);
+    del.onclick = () => remove(realIdx);
+    list.appendChild(li);
+  });
+}
+
+async function persist() {
+  await api('/api/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ module: state.module, items: state.items }),
+  });
+}
+
+async function move(idx, dir) {
+  const j = idx + dir;
+  if (j < 0 || j >= state.items.length) return;
+  [state.items[idx], state.items[j]] = [state.items[j], state.items[idx]];
+  await persist();
+  renderList();
+}
+
+async function toggleHidden(idx) {
+  state.items[idx].hidden = state.items[idx].hidden ? undefined : true;
+  delete state.items[idx].hidden; // undefined 序列化时本就会丢，这里保险删掉
+  await persist();
+  renderList();
+}
+
+async function remove(idx) {
+  const item = state.items[idx];
+  if (!confirm(`确定删除「${titleOf(item)}」？\n（删除只是从数据里移除，发布前可关页面放弃）`)) return;
+  state.items.splice(idx, 1);
+  await persist();
+  renderList();
+  toast('已删除（记得点「保存并发布」才会上线）');
+}
+
+// ---------- 编辑器 ----------
+function nextId() {
+  const mod = state.schema[state.module];
+  let n = state.items.length + 1;
+  const ids = new Set(state.items.map((i) => i.id));
+  while (ids.has(`${mod.prefix}-${String(n).padStart(2, '0')}`)) n++;
+  return `${mod.prefix}-${String(n).padStart(2, '0')}`;
+}
+
+function openEditor(idx) {
+  state.editing = idx; // null = 新增
+  const mod = state.schema[state.module];
+  const item = idx == null ? {} : state.items[idx];
+  state.form = {};
+  const form = $('form');
+  form.innerHTML = '';
+  for (const f of mod.fields) {
+    const v = item[f.key];
+    state.form[f.key] = Array.isArray(v) ? v.join('\n') : v == null ? '' : String(v);
+    const wrap = document.createElement('div');
+    wrap.className = 'field';
+    const label = document.createElement('label');
+    label.textContent = f.label;
+    wrap.appendChild(label);
+    if (f.type === 'textarea') {
+      const ta = document.createElement('textarea');
+      ta.rows = f.key === 'story' ? 6 : 5;
+      ta.value = state.form[f.key];
+      ta.oninput = () => (state.form[f.key] = ta.value);
+      wrap.appendChild(ta);
+    } else if (f.type === 'image') {
+      const box = document.createElement('div');
+      box.className = 'image-field';
+      const img = document.createElement('img');
+      img.style.display = state.form[f.key] ? '' : 'none';
+      if (state.form[f.key]) img.src = state.form[f.key];
+      const input = document.createElement('input');
+      input.placeholder = '上传或直接粘贴图片地址';
+      input.value = state.form[f.key];
+      input.oninput = () => {
+        state.form[f.key] = input.value;
+        img.style.display = input.value ? '' : 'none';
+        img.src = input.value;
+      };
+      const btn = document.createElement('button');
+      btn.textContent = '上传';
+      btn.onclick = () => pickFile(f.key, img, input);
+      box.append(img, input, btn);
+      wrap.appendChild(box);
+    } else {
+      const input = document.createElement('input');
+      input.type = f.type === 'number' ? 'number' : 'text';
+      if (idx == null && f.key === 'id' && state.module === 'travel') input.placeholder = '如 iceland';
+      input.value = state.form[f.key];
+      input.oninput = () => (state.form[f.key] = input.value);
+      wrap.appendChild(input);
+    }
+    form.appendChild(wrap);
+  }
+  if (idx == null && state.module !== 'travel') {
+    state.form.id = nextId();
+    state.form.width = state.form.width || '1672';
+    state.form.height = state.form.height || '941';
+  }
+  $('editorTitle').textContent = idx == null ? '新增内容' : '编辑内容';
+  $('editor').classList.add('open');
+  $('editor').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function pickFile(fieldKey, img, input) {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*,video/*';
+  fileInput.onchange = async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    toast('上传中…', 60000);
+    try {
+      const res = await fetch(`/api/upload?module=${state.module}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name) },
+        body: file,
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      state.form[fieldKey] = data.path;
+      input.value = data.path;
+      img.src = data.path;
+      img.style.display = '';
+      // 图片自动量尺寸回填宽高
+      if (fieldKey === 'src' || fieldKey === 'thumb') {
+        const probe = new Image();
+        probe.onload = () => {
+          if (probe.naturalWidth) {
+            state.form.width = String(probe.naturalWidth);
+            state.form.height = String(probe.naturalHeight);
+            const w = $('form').querySelector('input[type="number"]');
+            const h = $('form').querySelectorAll('input[type="number"]')[0];
+            const nums = $('form').querySelectorAll('input[type="number"]');
+            if (nums.length >= 2) { nums[0].value = state.form.width; nums[1].value = state.form.height; }
+          }
+        };
+        probe.src = data.path;
+      }
+      toast('上传成功');
+    } catch (e) {
+      toast('上传失败：' + e.message);
+    }
+  };
+  fileInput.click();
+}
+
+function closeEditor() {
+  state.editing = null;
+  $('editor').classList.remove('open');
+}
+
+async function save() {
+  const mod = state.schema[state.module];
+  const fields = {};
+  for (const f of mod.fields) {
+    const raw = state.form[f.key] ?? '';
+    if (f.key === 'story' || f.key === 'talk') {
+      fields[f.key] = raw.split('\n').map((s) => s.trim()).filter(Boolean);
+    } else if (f.type === 'number') {
+      fields[f.key] = Number(raw) || 0;
+    } else {
+      fields[f.key] = raw.trim();
+    }
+  }
+  const idx = state.editing;
+  if (idx == null) {
+    state.items.push(fields);
+  } else {
+    // 保留 hidden 等额外标记
+    const extra = { hidden: state.items[idx].hidden };
+    state.items[idx] = { ...fields };
+    if (extra.hidden) state.items[idx].hidden = true;
+  }
+  await persist();
+  renderList();
+  closeEditor();
+  toast(idx == null ? '已新增（记得点「保存并发布」才会上线）' : '已保存（记得点「保存并发布」才会上线）');
+}
+
+// ---------- 发布 ----------
+async function publish() {
+  const btn = $('publishBtn');
+  btn.disabled = true;
+  btn.textContent = '发布中…';
+  try {
+    const data = await api('/api/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    toast(data.message || '已发布', 6000);
+  } catch (e) {
+    toast('发布失败：' + e.message, 8000);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚀 保存并发布';
+  }
+}
+
+// ---------- 事件 ----------
+$('search').oninput = renderList;
+$('addBtn').onclick = () => openEditor(null);
+$('closeEditor').onclick = closeEditor;
+$('cancelBtn').onclick = closeEditor;
+$('saveBtn').onclick = () => save().catch((e) => toast('保存失败：' + e.message));
+$('publishBtn').onclick = () => publish();
+
+init().catch((e) => {
+  $('hint').textContent = '后台加载失败：' + e.message + '（服务是否已启动？）';
+});
+</script>
+</body>
+</html>

@@ -3,7 +3,8 @@
 // 原始 PNG 只在用户明确下载时请求；网页预览始终使用 WebP。
 // - 桌面端：直接下载原始 PNG
 // - 移动端（触屏 + 移动 UA）：走系统分享面板，可直接「存储到相册」
-export async function downloadOriginal(src: string, name: string) {
+export async function downloadOriginal(src: string | undefined, name: string) {
+  if (!src) return;
   const response = await fetch(src);
   if (!response.ok) throw new Error(`图片获取失败：${response.status}`);
   const blob = await response.blob();

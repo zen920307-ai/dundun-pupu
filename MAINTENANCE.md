@@ -63,3 +63,11 @@ app/playful-content.ts 存放扩展随机内容与不重复抽取逻辑：24 种
 此次浏览器检查：1440×1000 桌面和 390×844 手机；中文字体实际呈现、情绪卡、作品区、测试模块、设计师区、首屏视频。连续点击 24 次情绪和 40 次任务，分别获得 24/40 条不同内容；三题完成、结果和换题正常；设计稿切换与关闭正常，修复弹层重复位移。图片无已加载失败项，手机没有横向溢出；首屏有声播放，离开首屏暂停。关闭动效后季节照片仍全部可阅读。
 
 随机逻辑回归：node --experimental-strip-types --test scripts/content.test.mjs（覆盖轮内唯一、跨轮相邻不重复、三道题独立、内容池数量）。
+
+## 内容后台 CMS（2026-09-10）
+新增 `/admin` 内容后台 + 腾讯云开发 CloudBase 数据层，线上内容可实时管理。数据层 `lib/cms.ts`（SDK 懒加载分包、匿名登录读、用户名密码登录写、watch 实时订阅）+ `lib/cms-config.ts`（只需填环境 ID `CMS_ENV_ID`，留空则全站走静态数据兜底）。四个模块接入 `useCmsModule` hook：Collection（kv/wallpapers）、FestivalGallery（festivals）、TravelJournal（travel）；静态数组保留为兜底，云端成功后接管。出逃档案补了显式 `poster`/`posterThumb` 字段（Trip 类型，trips.ts），不填沿用 `/travel/{place}.webp` 约定路径。后台功能：五模块切换（含表情包预备）、列表搜索/排序/上下架/删除、全字段编辑、图片视频上传（自动量尺寸回填宽高）、一键导入静态数据作为初始内容。集合 `cms_items`，文档结构 `{_id, module, sort, visible, ...字段}`。配套文档 CLOUDBASE-SETUP.md（开通环境/身份验证/安全域名/权限规则/导入流程）。顺手修复既有问题：`Artwork` 类型补 `original?: string`（9-8 下载功能遗漏）、`downloadOriginal` 接受 undefined。
+验证：tsc --noEmit 零错误；oxlint app/admin + lib 零错误（全仓既有错误未动）；npm run build 通过，/admin 路由生成。未做浏览器实测（云环境尚未开通，CMS 路径走不到）。
+
+## 本地内容后台（2026-09-10 晚，替代云端方案）
+方案改为本地后台 + Git 自动发布（用户确认，零成本长期可用；云端 CloudBase 方案因 PG 环境不支持文档库 + 免费层到期限制而放弃）。内容从代码外置到 `content/*.json`（kv/wallpapers/festivals/travel/emoji 五个文件，由 TS 一次性导出生成），`gallery-data.ts` / `trips.ts` 改为 JSON 引用 + hidden 过滤。新增 `admin-local/`（server.mjs 无依赖 node:http 服务 + admin.html 原生 JS 界面）：五模块增删改查、排序（数组直接换位）、上下架（hidden 标记）、图片上传（`public/cms-media/<模块>/`，自动量尺寸回填宽高）、搜索；「保存并发布」= git add/commit/push origin master，GitHub Pages 约 1~3 分钟生效。服务只监听 127.0.0.1:4321，无需登录；`npm run admin` 启动。app/admin 与 lib/cms* 已删除，@cloudbase/js-sdk 已卸载；Artwork/Trip 类型新增 `hidden?: boolean`。前端渲染逻辑零改动（Collection/FestivalGallery/TravelJournal 恢复直读数组，出逃档案保留 poster/posterThumb 回退逻辑）。
+验证：tsc 零错误、build 通过（/admin 路由已不存在）；本地服务实测 schema/读取/保存/上传 API 全通；Playwright 实测界面（21 条 KV 缩略图全载、travel 20 条、编辑器打开、模块切换、零 JS 报错）。发布链路未实测 push（等拯第一次真实发布）。
