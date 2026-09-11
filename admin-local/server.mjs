@@ -16,6 +16,7 @@ const CONTENT_DIR = path.join(ROOT, 'content');
 const MEDIA_DIR = path.join(ROOT, 'public', 'cms-media');
 const PORT = 4321;
 const GIT_BRANCH = 'master';
+const noBrowser = process.argv.includes('--no-browser');
 
 // ---------- 模块与字段定义 ----------
 const MODULES = {
@@ -280,18 +281,26 @@ async function handleApi(req, res, url) {
         const push = await gitExec(`git push origin ${GIT_BRANCH}`);
         archiveNote = push.ok ? '已推送 GitHub 存档' : 'GitHub 推送失败（不影响上线）：' + push.output.slice(-120);
       }
-      // 2. 构建（vinext build）
+      // 2. 构建（vinext build）——不带代理，避免构建内 fetch 被故障代理拖死
       pubState.stage = 'build';
       pubState.note = '正在构建网站（vinext build）…';
       const build = await runCmd('npm run build', 300000);
       if (!build.ok) return fail(500, '构建失败：' + build.output.slice(-500));
-      // 3. 部署到 Cloudflare Worker（dun.zenslab.top 绑定 dundun-pupu）
+      // 3. 部署到 Cloudflare Worker（dun.zenslab.top 绑定 dundun-pupu）；直连失败自动带代理重试
       pubState.stage = 'deploy';
       pubState.note = '正在部署到 Cloudflare（上传资产）…';
-      const deploy = await runCmd(
+      let deploy = await runCmd(
         `npx wrangler deploy --config dist/server/wrangler.json --name ${CF_WORKER_NAME}`,
         600000,
       );
+      if (!deploy.ok) {
+        pubState.note = '直连部署失败，改走代理重试…';
+        deploy = await runCmd(
+          `npx wrangler deploy --config dist/server/wrangler.json --name ${CF_WORKER_NAME}`,
+          600000,
+          { keepProxy: true },
+        );
+      }
       if (!deploy.ok) return fail(500, 'Cloudflare 部署失败：' + deploy.output.slice(-500));
       pubState.running = false;
       pubState.ok = true;
@@ -364,7 +373,6 @@ const server = http.createServer((req, res) => {
 
 function openBrowser(done) {
   const url = `http://127.0.0.1:${PORT}`;
-  // 依次尝试显式浏览器路径，避免默认浏览器关联异常时静默失败
   const candidates = [
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
@@ -372,9 +380,9 @@ function openBrowser(done) {
     'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
   ];
   const browser = candidates.find((p) => existsSync(p));
-  // 不带 --new-window：Chrome 已在运行时新开标签页，未运行时弹新窗口
-  const cmd = browser ? `"${browser}" ${url}` : `start "" ${url}`;
-  exec(cmd, { windowsHide: true }, (err) => {
+  // start "" 让 cmd 立即退出；--new-tab 已有窗口时新开标签。windowsHide 会让 Chrome 丢前台。
+  const cmd = browser ? `start "" "${browser}" --new-tab ${url}` : `start "" ${url}`;
+  exec(cmd, { windowsHide: false }, (err) => {
     if (err) console.error('打开浏览器失败：', err.message, '（可手动访问 ' + url + '）');
     if (done) done();
   });
@@ -382,11 +390,10 @@ function openBrowser(done) {
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    // 已经有一个后台在跑：等浏览器拉起来之后再退出
-    // （不能立刻 exit，否则 exec 还没完成就被杀，Chrome 可能弹不出来）
+    if (noBrowser) process.exit(0);
     console.log('后台已在运行，直接打开页面 ' + new Date().toLocaleString('zh-CN'));
     openBrowser(() => process.exit(0));
-    setTimeout(() => process.exit(0), 8000); // 兜底：浏览器无响应时也确保退出
+    setTimeout(() => process.exit(0), 8000);
   } else {
     throw err;
   }
@@ -394,5 +401,5 @@ server.on('error', (err) => {
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log('内容后台已启动：http://127.0.0.1:%s （Ctrl+C 关闭；只监听本机，外部无法访问）', PORT);
-  openBrowser();
+  if (!noBrowser) openBrowser();
 });
