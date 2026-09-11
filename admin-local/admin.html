@@ -4,6 +4,7 @@
 <meta charset="utf-8" data-page-node-id="h18ii05v9CrQio3n0bQQEg" />
 <meta name="viewport" content="width=device-width, initial-scale=1" data-page-node-id="uySEPXKxqeTerNsLo3vx9a" />
 <title>墩墩和噗噗 · 内容后台</title>
+<link rel="icon" type="image/x-icon" href="/admin-local/admin.ico" />
 <style>
   :root {
     --bg: #f4f1e8;
@@ -155,6 +156,27 @@
   .pub-bar { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(80px); background: var(--side); color: #fff; border-radius: 14px; padding: 12px 18px; font-size: 13px; box-shadow: 0 14px 40px rgb(24 22 17 / 35%); z-index: 40; max-width: 76vw; transition: transform 0.25s cubic-bezier(0.32, 0.72, 0.25, 1); }
   .pub-bar.show { transform: translateX(-50%) translateY(0); }
 
+  /* ---------- 发布进度卡 ---------- */
+  .pub-progress { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(130px); width: 430px; max-width: 92vw; background: var(--side); color: #fff; border-radius: 16px; padding: 15px 18px 17px; box-shadow: 0 14px 40px rgb(24 22 17 / 40%); z-index: 41; transition: transform 0.25s cubic-bezier(0.32, 0.72, 0.25, 1); }
+  .pub-progress.show { transform: translateX(-50%) translateY(0); }
+  .pp-head { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; }
+  .pp-head .ico { color: #ffb066; }
+  .pp-head .pp-close { margin-left: auto; color: #9b947f; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 8px; cursor: pointer; }
+  .pp-head .pp-close:hover { background: rgb(255 255 255 / 10%); color: #fff; }
+  .pp-steps { display: flex; gap: 6px; margin: 12px 0 10px; }
+  .pp-step { flex: 1; display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #75705f; }
+  .pp-step .st-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #57523f; display: grid; place-items: center; flex: none; font-size: 10px; line-height: 1; }
+  .pp-step.active { color: #ffb066; font-weight: 600; }
+  .pp-step.active .st-dot { border-color: #ff8b2e; animation: pulse 1.4s infinite; }
+  .pp-step.done { color: #9ed69e; }
+  .pp-step.done .st-dot { border-color: #5cae5c; background: #5cae5c; color: #fff; }
+  .pp-step.err { color: #ff8f7a; }
+  .pp-step.err .st-dot { border-color: #e05a3d; background: #e05a3d; color: #fff; }
+  .pp-bar { height: 6px; border-radius: 999px; background: rgb(255 255 255 / 12%); overflow: hidden; }
+  .pp-bar i { display: block; height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #ff8b2e, #ffb066); transition: width 0.4s; }
+  .pp-note { font-size: 12px; color: #b9b29d; margin-top: 9px; line-height: 1.5; word-break: break-all; }
+  .pp-note.err { color: #ff9d8a; }
+
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-thumb { background: #d8d1bd; border-radius: 999px; border: 3px solid var(--bg); }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -261,7 +283,7 @@ const MODULE_META = {
   emoji:      { icon: 'smile',      desc: '表情包预备模块，随时开工' },
   travel:     { icon: 'send',       desc: '出逃档案：海报 + 日记 + 损友小剧场' },
 };
-const state = { schema: null, module: 'kv', items: [], editing: null, form: {}, dirty: false };
+const state = { schema: null, module: 'kv', items: [], counts: {}, editing: null, form: {}, dirty: false };
 const $ = (id) => document.getElementById(id);
 
 let toastTimer;
@@ -306,8 +328,25 @@ async function switchModule(m) {
   document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.m === m));
   const { items } = await api('/api/data?module=' + m);
   state.items = items;
+  state.counts[m] = items.length;
   updateChrome();
+  renderCounts();
   render();
+  // 后台补拉其余模块的数量（不阻塞当前模块渲染）
+  for (const k of Object.keys(state.schema)) {
+    if (k === m || state.counts[k] != null) continue;
+    api('/api/data?module=' + k)
+      .then(({ items: list }) => { state.counts[k] = list.length; renderCounts(); })
+      .catch(() => {});
+  }
+}
+
+// 每个标签显示各自模块的数量
+function renderCounts() {
+  document.querySelectorAll('#tabs button').forEach((b) => {
+    const n = state.counts[b.dataset.m];
+    if (n != null) b.querySelector('.cnt').textContent = n;
+  });
 }
 
 function updateChrome() {
@@ -316,9 +355,6 @@ function updateChrome() {
   $('modIcon').innerHTML = iconSvg(meta.icon || 'image', 18);
   $('modTitle').textContent = schema.label;
   $('modSub').textContent = meta.desc || '';
-  document.querySelectorAll('#tabs button').forEach((b) => {
-    b.querySelector('.cnt').textContent = state.items.length;
-  });
 }
 
 // ---------- 列表渲染 ----------
@@ -400,6 +436,8 @@ async function persist() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ module: state.module, items: state.items }),
   });
+  state.counts[state.module] = state.items.length;
+  renderCounts();
   markDirty();
 }
 
@@ -641,23 +679,117 @@ async function save() {
   toast('已保存到本地。点「保存并发布」上线');
 }
 
-// ---------- 发布 ----------
+// ---------- 发布（分步进度条） ----------
+const PP_STEPS = [
+  { key: 'archive', label: '存档' },
+  { key: 'build', label: '构建' },
+  { key: 'deploy', label: '部署' },
+  { key: 'done', label: '上线' },
+];
+const PP_W = { archive: 18, build: 55, deploy: 85, done: 100 };
+let ppPoll = null;
+const stopPoll = () => { if (ppPoll) { clearInterval(ppPoll); ppPoll = null; } };
+
+function buildProgressDom() {
+  const card = document.createElement('div');
+  card.className = 'pub-progress';
+  card.id = 'pp';
+  card.innerHTML = `
+    <div class="pp-head"><span class="ico">${iconSvg('send', 15)}</span><span id="ppTitle">正在发布…</span><span class="pp-close" id="ppClose" style="display:none">${iconSvg('x', 14)}</span></div>
+    <div class="pp-steps">${PP_STEPS.map((s) => `<div class="pp-step" data-s="${s.key}"><span class="st-dot"></span>${s.label}</div>`).join('')}</div>
+    <div class="pp-bar"><i id="ppBar"></i></div>
+    <div class="pp-note" id="ppNote">准备中…</div>`;
+  document.body.appendChild(card);
+  $('ppClose').onclick = () => $('pp').classList.remove('show');
+  return card;
+}
+
+function setStepStates(stage, isErr) {
+  const order = PP_STEPS.map((s) => s.key);
+  const reached = order.indexOf(stage);
+  document.querySelectorAll('#pp .pp-step').forEach((el, i) => {
+    const dot = el.querySelector('.st-dot');
+    el.classList.remove('active', 'done', 'err');
+    dot.textContent = '';
+    if (isErr && i === reached) { el.classList.add('err'); dot.textContent = '!'; }
+    else if (i < reached) { el.classList.add('done'); dot.textContent = '✓'; }
+    else if (i === reached) { el.classList.add('active'); }
+  });
+  if (stage === 'done') {
+    document.querySelectorAll('#pp .pp-step').forEach((el) => {
+      el.classList.remove('active');
+      el.classList.add('done');
+      el.querySelector('.st-dot').textContent = '✓';
+    });
+  }
+}
+
+function ppFail(stage, msg) {
+  setStepStates(stage || 'deploy', true);
+  $('ppBar').style.width = '100%';
+  $('ppBar').style.background = '#e05a3d';
+  const note = $('ppNote');
+  note.textContent = msg;
+  note.className = 'pp-note err';
+  $('ppTitle').textContent = '发布失败';
+  $('ppClose').style.display = '';
+}
+
 async function publish() {
   const btn = $('publishBtn');
   btn.disabled = true;
-  const lbl = btn.querySelector('.lbl');
-  const old = lbl.textContent;
-  lbl.textContent = '发布中…';
+  if (!$('pp')) buildProgressDom();
+  const pp = $('pp');
+  pp.classList.add('show');
+  $('ppClose').style.display = 'none';
+  $('ppNote').className = 'pp-note';
+  $('ppBar').style.background = '';
+  $('ppTitle').textContent = '正在发布…';
+  setStepStates('archive', false);
+  $('ppBar').style.width = PP_W.archive + '%';
+  $('ppNote').textContent = '正在连接本地服务…';
+  let sawError = false;
+
+  // 轮询服务端发布状态，驱动进度条
+  ppPoll = setInterval(async () => {
+    try {
+      const s = await (await fetch('/api/publish/status')).json();
+      if (s.error && !s.running) {
+        sawError = true;
+        stopPoll();
+        ppFail(s.stage, s.error);
+        return;
+      }
+      if (s.running) {
+        const st = s.stage || 'archive';
+        setStepStates(st, false);
+        $('ppBar').style.width = (PP_W[st] || 10) + '%';
+        $('ppNote').textContent = s.note || '';
+      }
+    } catch { /* 服务中断时由 publish 主请求的 catch 兜底 */ }
+  }, 700);
+
   try {
     const data = await api('/api/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+    stopPoll();
+    setStepStates('done', false);
+    $('ppBar').style.width = '100%';
+    $('ppNote').textContent = data.message || '已上线';
+    $('ppTitle').textContent = '发布成功';
     state.dirty = false;
     btn.classList.remove('dirty');
-    toast('🚀 ' + (data.message || '已发布'), 7000);
+    setTimeout(() => { if ($('pp')) $('pp').classList.remove('show'); }, 6000);
   } catch (e) {
-    toast('发布失败：' + e.message, 9000);
+    stopPoll();
+    if (!sawError) {
+      const hint = /Failed to fetch|fetch failed/i.test(e.message)
+        ? e.message + '（本地服务没在运行：双击桌面「内容后台」图标重启即可）'
+        : e.message;
+      ppFail('deploy', hint);
+    }
   } finally {
     btn.disabled = false;
-    lbl.textContent = old;
+    stopPoll();
   }
 }
 

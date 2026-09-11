@@ -1,7 +1,7 @@
 // ============================================================
 // 本地内容后台服务 —— node admin-local/server.mjs（或 npm run admin）
 // 只监听 127.0.0.1，仅本机可访问；数据写入 content/*.json，
-// 「保存并发布」自动 git commit + push，GitHub Pages 约 1~3 分钟后更新。
+// 「保存并发布」= git 存档 + 本地构建 + wrangler 部署到 Cloudflare Worker，约 1 分钟后线上生效。
 // ============================================================
 import http from 'node:http';
 import fs from 'node:fs/promises';
@@ -164,6 +164,9 @@ async function generateVariants(dir, originalFile, baseName) {
   });
 }
 
+// ---------- 发布任务状态（前端轮询 /api/publish/status 画进度条） ----------
+const pubState = { running: false, stage: '', note: '', startedAt: 0, ok: null, error: '', message: '' };
+
 // ---------- API ----------
 async function handleApi(req, res, url) {
   const send = (code, data) => {
@@ -233,33 +236,56 @@ async function handleApi(req, res, url) {
       });
     }
 
-    // 发布：git 存档 + 本地构建 + wrangler 部署到 Cloudflare Worker（约 1 分钟后线上生效）
+    // 发布进度查询
+    if (url.pathname === '/api/publish/status') {
+      return send(200, { ok: true, ...pubState });
+    }
+
+    // 发布：git 存档 + 本地构建 + wrangler 部署到 Cloudflare Worker（全程约 1 分钟）
     if (url.pathname === '/api/publish' && req.method === 'POST') {
       const { message } = await body().catch(() => ({ message: '' }));
+      if (pubState.running) return send(409, { ok: false, error: '已有发布任务在进行中，请等它完成' });
+      pubState.running = true;
+      pubState.ok = null;
+      pubState.error = '';
+      pubState.message = '';
+      pubState.startedAt = Date.now();
+      const fail = (code, msg) => {
+        pubState.running = false;
+        pubState.error = msg;
+        return send(code, { ok: false, error: msg });
+      };
       // 1. git 存档（有改动才提交；推送失败不阻塞上线）
+      pubState.stage = 'archive';
+      pubState.note = '正在存档内容改动到 git…';
       await gitExec('git add -A');
       const status = await gitExec('git status --porcelain');
       let archiveNote = '无内容改动，跳过 git 存档';
       if (status.output.trim()) {
         const commitMsg = (message || `内容更新 ${new Date().toLocaleString('zh-CN')}`).replace(/"/g, "'");
         const commit = await gitExec(`git commit -m "${commitMsg}"`);
-        if (!commit.ok) return send(500, { ok: false, error: 'git commit 失败：' + commit.output });
+        if (!commit.ok) return fail(500, 'git commit 失败：' + commit.output);
         const push = await gitExec(`git push origin ${GIT_BRANCH}`);
         archiveNote = push.ok ? '已推送 GitHub 存档' : 'GitHub 推送失败（不影响上线）：' + push.output.slice(-120);
       }
       // 2. 构建（vinext build）
+      pubState.stage = 'build';
+      pubState.note = '正在构建网站（vinext build）…';
       const build = await runCmd('npm run build', 300000);
-      if (!build.ok) return send(500, { ok: false, error: '构建失败：' + build.output.slice(-500) });
+      if (!build.ok) return fail(500, '构建失败：' + build.output.slice(-500));
       // 3. 部署到 Cloudflare Worker（dun.zenslab.top 绑定 dundun-pupu）
+      pubState.stage = 'deploy';
+      pubState.note = '正在部署到 Cloudflare（上传资产）…';
       const deploy = await runCmd(
         `npx wrangler deploy --config dist/server/wrangler.json --name ${CF_WORKER_NAME}`,
         600000,
       );
-      if (!deploy.ok) return send(500, { ok: false, error: 'Cloudflare 部署失败：' + deploy.output.slice(-500) });
-      return send(200, {
-        ok: true,
-        message: `已上线 Cloudflare，几秒内生效。${archiveNote}`,
-      });
+      if (!deploy.ok) return fail(500, 'Cloudflare 部署失败：' + deploy.output.slice(-500));
+      pubState.running = false;
+      pubState.ok = true;
+      pubState.stage = 'done';
+      pubState.message = `已上线 Cloudflare，几秒内生效。${archiveNote}`;
+      return send(200, { ok: true, message: pubState.message });
     }
 
     send(404, { ok: false, error: 'not found' });
@@ -281,6 +307,7 @@ const MIME = {
   '.gif': 'image/gif',
   '.mp4': 'video/mp4',
   '.woff2': 'font/woff2',
+  '.ico': 'image/x-icon',
 };
 
 async function handleStatic(res, url) {
@@ -300,7 +327,9 @@ async function handleStatic(res, url) {
     }
   }
   const file = url.pathname === '/' || url.pathname === '/admin' ? 'admin.html' : url.pathname.slice(1);
-  const full = path.resolve(__dirname, file);
+  // /admin-local/xxx 直接映射到本目录（favicon 等静态资源）
+  const rel = file.startsWith('admin-local/') ? file.slice('admin-local/'.length) : file;
+  const full = path.resolve(__dirname, rel);
   if (!full.startsWith(__dirname)) {
     res.writeHead(403);
     return res.end('forbidden');
@@ -331,9 +360,8 @@ function openBrowser(done) {
     'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
   ];
   const browser = candidates.find((p) => existsSync(p));
-  // --new-window：Chrome/Edge 已在运行时也强制弹出新窗口并置前，
-  // 而不是把页面塞进已存在的（可能最小化的）窗口里当标签页
-  const cmd = browser ? `"${browser}" --new-window ${url}` : `start "" ${url}`;
+  // 不带 --new-window：Chrome 已在运行时新开标签页，未运行时弹新窗口
+  const cmd = browser ? `"${browser}" ${url}` : `start "" ${url}`;
   exec(cmd, { windowsHide: true }, (err) => {
     if (err) console.error('打开浏览器失败：', err.message, '（可手动访问 ' + url + '）');
     if (done) done();
