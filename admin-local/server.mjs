@@ -109,11 +109,23 @@ function gitExec(cmd) {
   });
 }
 
-// 长耗时命令（构建/部署）；剥离 NODE_OPTIONS，避免外部注入的 require 钩子干扰构建
+// 长耗时命令（构建/部署）；剥离 NODE_OPTIONS 与代理变量，
+// 避免 require 钩子干扰构建、代理故障时构建内 fetch 挂死（YepFast 曾 502 拖死整个 build）
 const CF_WORKER_NAME = 'dundun-pupu'; // dun.zenslab.top 绑定的 Worker
-function runCmd(cmd, timeoutMs = 300000) {
+function cleanEnv({ keepProxy = false } = {}) {
   const env = { ...process.env };
   delete env.NODE_OPTIONS;
+  if (!keepProxy) {
+    for (const k of Object.keys(env)) {
+      if (/^(https?_proxy|all_proxy|ftp_proxy)$/i.test(k)) delete env[k];
+    }
+    env.NO_PROXY = '*';
+    env.no_proxy = '*';
+  }
+  return env;
+}
+function runCmd(cmd, timeoutMs = 300000, opts = {}) {
+  const env = cleanEnv(opts);
   return new Promise((resolve) => {
     exec(cmd, { cwd: ROOT, windowsHide: true, timeout: timeoutMs, env }, (err, stdout, stderr) => {
       resolve({ ok: !err, output: ((stdout || '') + (stderr || '')).trim() });
