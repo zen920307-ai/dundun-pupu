@@ -7,7 +7,8 @@ import http from 'node:http';
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { exec } from 'node:child_process';
+import os from 'node:os';
+import { exec, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -127,11 +128,43 @@ function cleanEnv({ keepProxy = false } = {}) {
 }
 function runCmd(cmd, timeoutMs = 300000, opts = {}) {
   const env = cleanEnv(opts);
-  return new Promise((resolve) => {
-    exec(cmd, { cwd: ROOT, windowsHide: true, timeout: timeoutMs, env }, (err, stdout, stderr) => {
-      resolve({ ok: !err, output: ((stdout || '') + (stderr || '')).trim() });
-    });
-  });
+  // 输出写日志文件 + 哨兵文件标记完成，轮询检测——
+  // 规避构建孙进程占用 stdio 管道导致 exec 回调永不触发（Windows 经典坑）
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const logFile = path.join(os.tmpdir(), `admin-cmd-${stamp}.log`);
+  const doneFile = logFile + '.done';
+  const batFile = path.join(os.tmpdir(), `admin-cmd-${stamp}.cmd`);
+  const bat = `@echo off\r\n${cmd} > "${logFile}" 2>&1\r\necho %ERRORLEVEL% > "${doneFile}"\r\n`;
+  const t0 = Date.now();
+  return (async () => {
+    await fs.writeFile(batFile, bat, 'utf8');
+    const child = spawn(batFile, [], { cwd: ROOT, windowsHide: true, env, timeout: timeoutMs });
+    child.unref?.();
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 1500));
+      let done = false;
+      try {
+        await fs.access(doneFile);
+        done = true;
+      } catch {}
+      if (!done && Date.now() - t0 < timeoutMs) continue;
+      try {
+        child.kill();
+      } catch {}
+      let log = '';
+      try {
+        log = await fs.readFile(logFile, 'utf8');
+      } catch {}
+      let code = '';
+      try {
+        code = (await fs.readFile(doneFile, 'utf8')).trim();
+      } catch {}
+      await fs.rm(logFile, { force: true }).catch(() => {});
+      await fs.rm(doneFile, { force: true }).catch(() => {});
+      await fs.rm(batFile, { force: true }).catch(() => {});
+      return { ok: done && code === '0', output: log.slice(-4000), killed: !done };
+    }
+  })();
 }
 
 // ---------- 图片变体生成（一张图 → 主图 webp + 缩略图 webp） ----------
