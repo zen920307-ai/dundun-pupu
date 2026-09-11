@@ -1,15 +1,5 @@
 [
   {
-    "id": "kv-01",
-    "src": "/gallery/kv/01.webp",
-    "thumb": "/gallery/kv/01-thumb.webp",
-    "original": "/downloads/kv/01.png",
-    "width": 1672,
-    "height": 941,
-    "title": "让空气也变温柔",
-    "tag": "慢吞吞日常"
-  },
-  {
     "id": "kv-02",
     "src": "/gallery/kv/02.webp",
     "thumb": "/gallery/kv/02-thumb.webp",
@@ -18,6 +8,16 @@
     "height": 941,
     "title": "把风收集起来",
     "tag": "出门胡闹"
+  },
+  {
+    "id": "kv-01",
+    "src": "/gallery/kv/01.webp",
+    "thumb": "/gallery/kv/01-thumb.webp",
+    "original": "/downloads/kv/01.png",
+    "width": 1672,
+    "height": 941,
+    "title": "让空气也变温柔",
+    "tag": "慢吞吞日常"
   },
   {
     "id": "kv-03",
