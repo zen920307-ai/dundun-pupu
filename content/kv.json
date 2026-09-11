@@ -1,13 +1,12 @@
 [
   {
-    "id": "kv-06",
+    "title": "一起把星星贴近一点",
+    "tag": "夜间营业",
     "src": "/gallery/kv/06.webp",
     "thumb": "/gallery/kv/06-thumb.webp",
     "original": "/downloads/kv/06.png",
     "width": 1672,
-    "height": 941,
-    "title": "把星星贴近一点",
-    "tag": "夜间营业"
+    "height": 941
   },
   {
     "id": "kv-02",
