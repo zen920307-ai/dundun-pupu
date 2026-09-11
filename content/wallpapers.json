@@ -1,5 +1,15 @@
 [
   {
+    "id": "wallpapers-03",
+    "src": "/gallery/wallpapers/03.webp",
+    "thumb": "/gallery/wallpapers/03-thumb.webp",
+    "original": "/downloads/wallpapers/03.png",
+    "width": 841,
+    "height": 1870,
+    "title": "雨夜出走",
+    "tag": "城市漫游"
+  },
+  {
     "id": "wallpapers-02",
     "src": "/gallery/wallpapers/02.webp",
     "thumb": "/gallery/wallpapers/02-thumb.webp",
@@ -18,16 +28,6 @@
     "height": 1870,
     "title": "沙发宇宙飞船",
     "tag": "软乎日常"
-  },
-  {
-    "id": "wallpapers-03",
-    "src": "/gallery/wallpapers/03.webp",
-    "thumb": "/gallery/wallpapers/03-thumb.webp",
-    "original": "/downloads/wallpapers/03.png",
-    "width": 841,
-    "height": 1870,
-    "title": "雨夜出走",
-    "tag": "城市漫游"
   },
   {
     "id": "wallpapers-04",
