@@ -262,6 +262,52 @@ async function runBuild(timeoutMs = 150000) {
   }
 }
 
+// 部署专用：与 runBuild 同款轮询判定。wrangler 打印「Current Version ID:」即部署完成，
+// 不等待进程退出（本机环境下 wrangler 也可能挂住不退出）
+async function runDeploy(timeoutMs = 300000, opts = {}) {
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const logFile = path.join(os.tmpdir(), `admin-deploy-${stamp}.log`);
+  const doneFile = logFile + '.done';
+  const batFile = path.join(os.tmpdir(), `admin-deploy-${stamp}.cmd`);
+  const cmd = `npx wrangler deploy --config dist/server/wrangler.json --name ${CF_WORKER_NAME}`;
+  await fs.writeFile(batFile, `@echo off\r\n${cmd} > "${logFile}" 2>&1\r\necho %ERRORLEVEL% > "${doneFile}"\r\n`, 'utf8');
+  const t0 = Date.now();
+  const child = spawn('cmd.exe', ['/d', '/s', '/c', batFile], { cwd: ROOT, windowsHide: true, env: cleanEnv(opts) });
+  child.unref?.();
+  const killTree = () => runCmd(`taskkill /F /PID ${child.pid} /T`, 15000).catch(() => {});
+  try {
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 1500));
+      let log = '';
+      try {
+        log = await fs.readFile(logFile, 'utf8');
+      } catch {}
+      let done = false;
+      let code = '';
+      try {
+        code = (await fs.readFile(doneFile, 'utf8')).trim();
+        done = true;
+      } catch {}
+      if (log.includes('Current Version ID:')) {
+        await killTree();
+        return { ok: true, output: log.slice(-4000) };
+      }
+      if (done) {
+        await killTree();
+        return { ok: code === '0' && log.includes('Current Version ID:'), output: log.slice(-4000) };
+      }
+      if (Date.now() - t0 > timeoutMs) {
+        await killTree();
+        return { ok: false, output: log.slice(-4000) + '\n（部署超时被终止）' };
+      }
+    }
+  } finally {
+    await fs.rm(logFile, { force: true }).catch(() => {});
+    await fs.rm(doneFile, { force: true }).catch(() => {});
+    await fs.rm(batFile, { force: true }).catch(() => {});
+  }
+}
+
 // ---------- 发布任务状态（前端轮询 /api/publish/status 画进度条） ----------
 const pubState = { running: false, stage: '', note: '', startedAt: 0, ok: null, error: '', message: '' };
 
@@ -381,19 +427,12 @@ async function handleApi(req, res, url) {
       // 3. 部署到 Cloudflare Worker（dun.zenslab.top 绑定 dundun-pupu）；直连失败自动带代理重试
       pubState.stage = 'deploy';
       pubState.note = '正在部署到 Cloudflare（上传资产）…';
-      let deploy = await runCmd(
-        `npx wrangler deploy --config dist/server/wrangler.json --name ${CF_WORKER_NAME}`,
-        600000,
-      );
+      let deploy = await runDeploy(300000);
       if (!deploy.ok) {
         pubState.note = '直连部署失败，改走代理重试…';
-        deploy = await runCmd(
-          `npx wrangler deploy --config dist/server/wrangler.json --name ${CF_WORKER_NAME}`,
-          600000,
-          { keepProxy: true },
-        );
+        deploy = await runDeploy(300000, { keepProxy: true });
       }
-      if (!deploy.ok) return fail(500, 'Cloudflare 部署失败：' + deploy.output.slice(-500));
+      if (!deploy.ok) return fail(500, 'Cloudflare 部署失败：' + deploy.output.slice(-600));
       pubState.running = false;
       pubState.ok = true;
       pubState.stage = 'done';
