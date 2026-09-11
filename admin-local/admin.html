@@ -65,10 +65,25 @@
   .btn-publish.dirty .dot { display: block; animation: pulse 1.6s infinite; }
   @keyframes pulse { 50% { transform: scale(1.35); } }
 
+  /* ---------- 顶栏发布状态胶囊 ---------- */
+  .pub-status { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 12px; color: var(--ink-2); white-space: nowrap; cursor: default; transition: box-shadow 0.15s, border-color 0.15s; }
+  .pub-status .ps-dot { width: 8px; height: 8px; border-radius: 50%; background: #b9b29d; flex: none; transition: background 0.2s; }
+  .pub-status.dirty .ps-dot { background: #ffb020; }
+  .pub-status.running .ps-dot { background: var(--accent); animation: pulse 1.2s infinite; }
+  .pub-status.ok .ps-dot { background: #3fae5c; }
+  .pub-status.err .ps-dot { background: #e05a3d; }
+  .pub-status.err { border-color: #f3c1b5; color: #c0452a; cursor: pointer; }
+  .pub-status b { color: var(--ink); font-weight: 600; }
+  .pub-status.err b { color: #c0452a; }
+  .ps-bar { display: none; width: 88px; height: 5px; border-radius: 999px; background: #efe9da; overflow: hidden; }
+  .pub-status.running .ps-bar { display: block; }
+  .ps-bar i { display: block; height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #ff8b2e, #ffb066); transition: width 0.5s; }
+  .ps-bar i.err { background: #e05a3d; }
+
   .scroll { flex: 1; overflow-y: auto; padding: 4px 28px 40px; }
 
   /* ---------- 卡片网格 ---------- */
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 18px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
   .card { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform 0.18s, box-shadow 0.18s; animation: rise 0.35s both; display: flex; flex-direction: column; }
   .card:hover { transform: translateY(-4px); box-shadow: 0 6px 16px rgb(48 42 28 / 9%), 0 18px 40px rgb(48 42 28 / 10%); }
   @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
@@ -85,13 +100,13 @@
   .card.hidden-card .card-body { opacity: 0.6; }
 
   /* 常驻操作条：不悬浮、不消失、不折行 */
-  .ops { display: flex; align-items: stretch; gap: 5px; padding: 9px 12px 12px; border-top: 1px dashed var(--line); }
-  .ops button { display: flex; align-items: center; justify-content: center; gap: 5px; height: 30px; border-radius: 9px; background: #f4f0e5; color: #5d5749; font-size: 12px; font-weight: 600; white-space: nowrap; padding: 0 10px; transition: background 0.15s, color 0.15s; }
+  .ops { display: flex; align-items: stretch; gap: 4px; padding: 9px 10px 11px; border-top: 1px dashed var(--line); }
+  .ops button { display: flex; align-items: center; justify-content: center; gap: 4px; height: 28px; border-radius: 9px; background: #f4f0e5; color: #5d5749; font-size: 11.5px; font-weight: 600; white-space: nowrap; padding: 0 8px; transition: background 0.15s, color 0.15s; }
   .ops button:hover { background: #eae4d3; color: var(--ink); }
-  .ops button .ico svg { width: 13px; height: 13px; }
-  .ops button.primary { background: var(--accent); color: #fff; flex: 1.4; }
+  .ops button .ico svg { width: 12px; height: 12px; }
+  .ops button.primary { background: var(--accent); color: #fff; flex: 1.2; }
   .ops button.primary:hover { background: var(--accent-2); }
-  .ops button.sq { flex: none; width: 30px; padding: 0; }
+  .ops button.sq { flex: none; width: 28px; padding: 0; }
   .ops button.toggle { flex: 1; }
   .ops button.danger:hover { background: #fde8e4; color: #d64524; }
 
@@ -152,30 +167,9 @@
   .btn-ghost { padding: 12px 18px; border-radius: 12px; background: #f1eee6; color: var(--ink-2); font-size: 13.5px; }
   .btn-ghost:hover { background: #e8e3d5; }
 
-  /* ---------- 提示横幅 ---------- */
+  /* ---------- 提示横幅（保存/删除等轻提示） ---------- */
   .pub-bar { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(80px); background: var(--side); color: #fff; border-radius: 14px; padding: 12px 18px; font-size: 13px; box-shadow: 0 14px 40px rgb(24 22 17 / 35%); z-index: 40; max-width: 76vw; transition: transform 0.25s cubic-bezier(0.32, 0.72, 0.25, 1); }
   .pub-bar.show { transform: translateX(-50%) translateY(0); }
-
-  /* ---------- 发布进度卡 ---------- */
-  .pub-progress { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(130px); width: 430px; max-width: 92vw; background: var(--side); color: #fff; border-radius: 16px; padding: 15px 18px 17px; box-shadow: 0 14px 40px rgb(24 22 17 / 40%); z-index: 41; transition: transform 0.25s cubic-bezier(0.32, 0.72, 0.25, 1); }
-  .pub-progress.show { transform: translateX(-50%) translateY(0); }
-  .pp-head { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; }
-  .pp-head .ico { color: #ffb066; }
-  .pp-head .pp-close { margin-left: auto; color: #9b947f; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 8px; cursor: pointer; }
-  .pp-head .pp-close:hover { background: rgb(255 255 255 / 10%); color: #fff; }
-  .pp-steps { display: flex; gap: 6px; margin: 12px 0 10px; }
-  .pp-step { flex: 1; display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #75705f; }
-  .pp-step .st-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #57523f; display: grid; place-items: center; flex: none; font-size: 10px; line-height: 1; }
-  .pp-step.active { color: #ffb066; font-weight: 600; }
-  .pp-step.active .st-dot { border-color: #ff8b2e; animation: pulse 1.4s infinite; }
-  .pp-step.done { color: #9ed69e; }
-  .pp-step.done .st-dot { border-color: #5cae5c; background: #5cae5c; color: #fff; }
-  .pp-step.err { color: #ff8f7a; }
-  .pp-step.err .st-dot { border-color: #e05a3d; background: #e05a3d; color: #fff; }
-  .pp-bar { height: 6px; border-radius: 999px; background: rgb(255 255 255 / 12%); overflow: hidden; }
-  .pp-bar i { display: block; height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #ff8b2e, #ffb066); transition: width 0.4s; }
-  .pp-note { font-size: 12px; color: #b9b29d; margin-top: 9px; line-height: 1.5; word-break: break-all; }
-  .pp-note.err { color: #ff9d8a; }
 
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-thumb { background: #d8d1bd; border-radius: 999px; border: 3px solid var(--bg); }
@@ -213,6 +207,7 @@
         <div class="sub" id="modSub" data-page-node-id="JINdKher6J7NreM02EWZVt"></div>
       </div>
       <div class="spacer" data-page-node-id="rYRIPgTIh32GDmF9UrDvIB"></div>
+      <div class="pub-status" id="pubStatus" data-page-node-id="PUBSTATUS0000000000000"><span class="ps-dot" data-page-node-id="PSDOT0000000000000000000"></span><span id="psText" data-page-node-id="PSTEXT00000000000000000">状态加载中…</span><span class="ps-bar" data-page-node-id="PSBAR000000000000000000"><i id="psBar" data-page-node-id="PSBARFILL0000000000000"></i></span></div>
       <div class="search-wrap" data-page-node-id="Llpn6uka1Y8EWwar6VvJSN"><span class="ico" data-icon="search" data-page-node-id="Jb7RlqkQ4F3MTZ05asC6Qa"></span><input class="search" id="search" placeholder="搜索标题 / 标签…" data-page-node-id="PrslnYw0KyHvh06q0Bafpc" /></div>
       <button class="btn-add" id="addBtn" data-page-node-id="GoW1WQEFtzDYY3od85Z8wC"><span class="ico" data-icon="plus" data-page-node-id="RnuZ1S0uhQAjeiNf8a1UT3"></span>新增</button>
       <button class="btn-publish" id="publishBtn" data-page-node-id="4hyH24dpGB72C4rocxQzM6"><span class="ico" data-icon="send" data-page-node-id="H3u9RE8Ypt4tDuGaWYYZLJ"></span><span class="lbl" data-page-node-id="wuLIjRlQRqQ1GmXomutfeE">保存并发布</span><span class="dot" data-page-node-id="4jTFJ0muPAFcZs8V9FQ6GB"></span></button>
@@ -257,6 +252,8 @@ const ICON_PATHS = {
   edit: '<path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
   'arrow-up': '<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>',
   'arrow-down': '<line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>',
+  'to-top': '<polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/>',
+  'to-bottom': '<polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/>',
   'eye-off': '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
   eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
   trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
@@ -283,7 +280,7 @@ const MODULE_META = {
   emoji:      { icon: 'smile',      desc: '表情包预备模块，随时开工' },
   travel:     { icon: 'send',       desc: '出逃档案：海报 + 日记 + 损友小剧场' },
 };
-const state = { schema: null, module: 'kv', items: [], counts: {}, editing: null, form: {}, dirty: false };
+const state = { schema: null, module: 'kv', items: [], counts: {}, editing: null, form: {}, dirty: false, pub: { status: 'idle', lastSuccessAt: 0, lastError: '' } };
 const $ = (id) => document.getElementById(id);
 
 let toastTimer;
@@ -298,6 +295,10 @@ function toast(msg, ms = 3200) {
 function markDirty() {
   state.dirty = true;
   $('publishBtn').classList.add('dirty');
+  if (state.pub.status !== 'running') {
+    state.pub.status = 'dirty';
+    renderPubStatus();
+  }
 }
 
 async function api(pathname, opts) {
@@ -320,6 +321,7 @@ async function init() {
     tabs.appendChild(b);
   }
   await switchModule('kv');
+  syncPubStatus();
 }
 
 async function switchModule(m) {
@@ -401,11 +403,13 @@ function render() {
         <div class="card-meta"></div>
       </div>
       <div class="ops">
-        <button class="primary" data-act="edit"><span class="ico">${iconSvg('edit', 13)}</span>编辑</button>
-        <button class="sq" data-act="up" title="前移一位"><span class="ico">${iconSvg('arrow-up', 13)}</span></button>
-        <button class="sq" data-act="down" title="后移一位"><span class="ico">${iconSvg('arrow-down', 13)}</span></button>
-        <button class="toggle" data-act="toggle" title="${item.hidden ? '重新上架' : '下架（前端隐藏）'}"><span class="ico">${iconSvg(item.hidden ? 'eye' : 'eye-off', 13)}</span>${item.hidden ? '上架' : '下架'}</button>
-        <button class="sq danger" data-act="del" title="删除"><span class="ico">${iconSvg('trash', 13)}</span></button>
+        <button class="primary" data-act="edit"><span class="ico">${iconSvg('edit', 12)}</span>编辑</button>
+        <button class="sq" data-act="top" title="置顶"><span class="ico">${iconSvg('to-top', 12)}</span></button>
+        <button class="sq" data-act="up" title="前移一位"><span class="ico">${iconSvg('arrow-up', 12)}</span></button>
+        <button class="sq" data-act="down" title="后移一位"><span class="ico">${iconSvg('arrow-down', 12)}</span></button>
+        <button class="sq" data-act="bottom" title="置底"><span class="ico">${iconSvg('to-bottom', 12)}</span></button>
+        <button class="toggle" data-act="toggle" title="${item.hidden ? '重新上架' : '下架（前端隐藏）'}"><span class="ico">${iconSvg(item.hidden ? 'eye' : 'eye-off', 12)}</span>${item.hidden ? '上架' : '下架'}</button>
+        <button class="sq danger" data-act="del" title="删除"><span class="ico">${iconSvg('trash', 12)}</span></button>
       </div>`;
     card.querySelector('h3').textContent = titleOf(item);
     const meta = card.querySelector('.card-meta');
@@ -422,8 +426,10 @@ function render() {
       meta.appendChild(chip);
     }
     card.querySelector('[data-act=edit]').onclick = () => openDrawer(realIdx);
+    card.querySelector('[data-act=top]').onclick = () => toEdge(realIdx, 'top');
     card.querySelector('[data-act=up]').onclick = () => move(realIdx, -1);
     card.querySelector('[data-act=down]').onclick = () => move(realIdx, 1);
+    card.querySelector('[data-act=bottom]').onclick = () => toEdge(realIdx, 'bottom');
     card.querySelector('[data-act=toggle]').onclick = () => toggleHidden(realIdx);
     card.querySelector('[data-act=del]').onclick = () => remove(realIdx);
     grid.appendChild(card);
@@ -447,6 +453,19 @@ async function move(idx, dir) {
   [state.items[idx], state.items[j]] = [state.items[j], state.items[idx]];
   await persist();
   render();
+}
+
+// 一键置顶 / 一键置底
+async function toEdge(idx, edge) {
+  const n = state.items.length;
+  if (idx < 0 || idx >= n || n < 2) return;
+  if ((edge === 'top' && idx === 0) || (edge === 'bottom' && idx === n - 1)) return;
+  const [item] = state.items.splice(idx, 1);
+  if (edge === 'top') state.items.unshift(item);
+  else state.items.push(item);
+  await persist();
+  render();
+  if (edge === 'top') document.querySelector('.scroll')?.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function toggleHidden(idx) {
@@ -679,117 +698,144 @@ async function save() {
   toast('已保存到本地。点「保存并发布」上线');
 }
 
-// ---------- 发布（分步进度条） ----------
-const PP_STEPS = [
-  { key: 'archive', label: '存档' },
-  { key: 'build', label: '构建' },
-  { key: 'deploy', label: '部署' },
-  { key: 'done', label: '上线' },
-];
-const PP_W = { archive: 18, build: 55, deploy: 85, done: 100 };
+// ---------- 发布状态（顶栏胶囊：状态 + 最近上线时间 + 进度） ----------
+const PP_STAGES = { archive: '存档中', build: '构建中', deploy: '部署中', done: '上线' };
+const PP_W = { archive: 15, build: 55, deploy: 85, done: 100 };
 let ppPoll = null;
 const stopPoll = () => { if (ppPoll) { clearInterval(ppPoll); ppPoll = null; } };
 
-function buildProgressDom() {
-  const card = document.createElement('div');
-  card.className = 'pub-progress';
-  card.id = 'pp';
-  card.innerHTML = `
-    <div class="pp-head"><span class="ico">${iconSvg('send', 15)}</span><span id="ppTitle">正在发布…</span><span class="pp-close" id="ppClose" style="display:none">${iconSvg('x', 14)}</span></div>
-    <div class="pp-steps">${PP_STEPS.map((s) => `<div class="pp-step" data-s="${s.key}"><span class="st-dot"></span>${s.label}</div>`).join('')}</div>
-    <div class="pp-bar"><i id="ppBar"></i></div>
-    <div class="pp-note" id="ppNote">准备中…</div>`;
-  document.body.appendChild(card);
-  $('ppClose').onclick = () => $('pp').classList.remove('show');
-  return card;
+const fmtTime = (ts) => {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const today = new Date();
+  return d.toDateString() === today.toDateString() ? hm : `${d.getMonth() + 1}/${d.getDate()} ${hm}`;
+};
+
+function renderPubStatus(progressPct) {
+  const pill = $('pubStatus');
+  const st = state.pub.status;
+  pill.className = 'pub-status ' + st;
+  const bar = $('psBar');
+  bar.classList.remove('err');
+  let text = '';
+  if (st === 'running') {
+    text = `发布中 · ${PP_STAGES[state.pub.stage] || '准备中'}`;
+    bar.style.width = (progressPct ?? PP_W[state.pub.stage] ?? 10) + '%';
+  } else if (st === 'ok') {
+    text = `已上线 · ${fmtTime(state.pub.lastSuccessAt)}`;
+  } else if (st === 'err') {
+    text = '发布失败';
+    bar.style.width = '100%';
+    bar.classList.add('err');
+  } else if (st === 'dirty') {
+    text = '有未发布改动';
+  } else {
+    text = state.pub.lastSuccessAt ? `上次上线 ${fmtTime(state.pub.lastSuccessAt)}` : '暂无发布记录';
+  }
+  $('psText').textContent = text;
+  pill.title = st === 'err' && state.pub.lastError
+    ? state.pub.lastError + '（点击查看详情）'
+    : st === 'dirty'
+      ? '点右上「保存并发布」上线'
+      : '';
 }
 
-function setStepStates(stage, isErr) {
-  const order = PP_STEPS.map((s) => s.key);
-  const reached = order.indexOf(stage);
-  document.querySelectorAll('#pp .pp-step').forEach((el, i) => {
-    const dot = el.querySelector('.st-dot');
-    el.classList.remove('active', 'done', 'err');
-    dot.textContent = '';
-    if (isErr && i === reached) { el.classList.add('err'); dot.textContent = '!'; }
-    else if (i < reached) { el.classList.add('done'); dot.textContent = '✓'; }
-    else if (i === reached) { el.classList.add('active'); }
-  });
-  if (stage === 'done') {
-    document.querySelectorAll('#pp .pp-step').forEach((el) => {
-      el.classList.remove('active');
-      el.classList.add('done');
-      el.querySelector('.st-dot').textContent = '✓';
-    });
+// 发布失败时点胶囊弹完整错误
+$('pubStatus').onclick = () => {
+  if (state.pub.status === 'err' && state.pub.lastError) alert(state.pub.lastError);
+};
+
+// 轮询服务端发布状态，驱动顶栏进度
+function startPoll() {
+  stopPoll();
+  ppPoll = setInterval(async () => {
+    try {
+      const s = await (await fetch('/api/publish/status')).json();
+      if (s.running) {
+        state.pub.status = 'running';
+        state.pub.stage = s.stage || 'archive';
+        renderPubStatus();
+      } else if (s.ok === false && s.error) {
+        stopPoll();
+        state.pub.status = 'err';
+        state.pub.lastError = s.error;
+        renderPubStatus();
+      }
+    } catch { /* 服务中断时由 publish 主请求的 catch 兜底 */ }
+  }, 700);
+}
+
+// 页面加载时同步一次服务端状态（含别的标签页发起的发布、上次失败记录）
+async function syncPubStatus() {
+  try {
+    const s = await (await fetch('/api/publish/status')).json();
+    state.pub.lastSuccessAt = s.lastSuccessAt || 0;
+    if (s.running) {
+      state.pub.status = 'running';
+      state.pub.stage = s.stage || 'archive';
+      renderPubStatus();
+      $('publishBtn').disabled = true;
+      startPoll();
+      // 补一个跟随轮询直到结束
+      const follow = setInterval(async () => {
+        try {
+          const t = await (await fetch('/api/publish/status')).json();
+          if (!t.running) {
+            clearInterval(follow);
+            $('publishBtn').disabled = false;
+            finishPub(!t.error, t.error, t.lastSuccessAt);
+          }
+        } catch { clearInterval(follow); $('publishBtn').disabled = false; }
+      }, 1500);
+    } else if (s.ok === false && s.error) {
+      state.pub.status = 'err';
+      state.pub.lastError = s.error;
+      renderPubStatus();
+    } else {
+      renderPubStatus();
+    }
+  } catch {
+    state.pub.lastError = '本地服务未运行：双击桌面「内容后台」图标重启';
+    state.pub.status = 'err';
+    renderPubStatus();
   }
 }
 
-function ppFail(stage, msg) {
-  setStepStates(stage || 'deploy', true);
-  $('ppBar').style.width = '100%';
-  $('ppBar').style.background = '#e05a3d';
-  const note = $('ppNote');
-  note.textContent = msg;
-  note.className = 'pp-note err';
-  $('ppTitle').textContent = '发布失败';
-  $('ppClose').style.display = '';
+function finishPub(success, errorMsg, lastSuccessAt) {
+  stopPoll();
+  const btn = $('publishBtn');
+  btn.disabled = false;
+  if (success) {
+    state.pub.status = 'ok';
+    state.pub.lastSuccessAt = lastSuccessAt || Date.now();
+    state.pub.lastError = '';
+    state.dirty = false;
+    btn.classList.remove('dirty');
+  } else {
+    state.pub.status = 'err';
+    state.pub.lastError = errorMsg || '未知错误';
+  }
+  renderPubStatus();
 }
 
 async function publish() {
   const btn = $('publishBtn');
   btn.disabled = true;
-  if (!$('pp')) buildProgressDom();
-  const pp = $('pp');
-  pp.classList.add('show');
-  $('ppClose').style.display = 'none';
-  $('ppNote').className = 'pp-note';
-  $('ppBar').style.background = '';
-  $('ppTitle').textContent = '正在发布…';
-  setStepStates('archive', false);
-  $('ppBar').style.width = PP_W.archive + '%';
-  $('ppNote').textContent = '正在连接本地服务…';
-  let sawError = false;
-
-  // 轮询服务端发布状态，驱动进度条
-  ppPoll = setInterval(async () => {
-    try {
-      const s = await (await fetch('/api/publish/status')).json();
-      if (s.error && !s.running) {
-        sawError = true;
-        stopPoll();
-        ppFail(s.stage, s.error);
-        return;
-      }
-      if (s.running) {
-        const st = s.stage || 'archive';
-        setStepStates(st, false);
-        $('ppBar').style.width = (PP_W[st] || 10) + '%';
-        $('ppNote').textContent = s.note || '';
-      }
-    } catch { /* 服务中断时由 publish 主请求的 catch 兜底 */ }
-  }, 700);
-
+  state.pub.status = 'running';
+  state.pub.stage = 'archive';
+  state.pub.lastError = '';
+  renderPubStatus(PP_W.archive);
+  startPoll();
   try {
     const data = await api('/api/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
-    stopPoll();
-    setStepStates('done', false);
-    $('ppBar').style.width = '100%';
-    $('ppNote').textContent = data.message || '已上线';
-    $('ppTitle').textContent = '发布成功';
-    state.dirty = false;
-    btn.classList.remove('dirty');
-    setTimeout(() => { if ($('pp')) $('pp').classList.remove('show'); }, 6000);
+    finishPub(true, '', data.lastSuccessAt);
   } catch (e) {
     stopPoll();
-    if (!sawError) {
-      const hint = /Failed to fetch|fetch failed/i.test(e.message)
-        ? e.message + '（本地服务没在运行：双击桌面「内容后台」图标重启即可）'
-        : e.message;
-      ppFail('deploy', hint);
-    }
-  } finally {
-    btn.disabled = false;
-    stopPoll();
+    const hint = /Failed to fetch|fetch failed/i.test(e.message)
+      ? e.message + '（本地服务没在运行：双击桌面「内容后台」图标重启即可）'
+      : e.message;
+    finishPub(false, hint);
   }
 }
 

@@ -5,7 +5,7 @@
 // ============================================================
 import http from 'node:http';
 import fs from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { exec, spawn } from 'node:child_process';
@@ -309,7 +309,26 @@ async function runDeploy(timeoutMs = 300000, opts = {}) {
 }
 
 // ---------- 发布任务状态（前端轮询 /api/publish/status 画进度条） ----------
-const pubState = { running: false, stage: '', note: '', startedAt: 0, ok: null, error: '', message: '' };
+// lastSuccessAt 持久化到本地，服务重启后顶栏仍能显示「上次上线时间」
+const PUBLISH_STATE_FILE = path.join(__dirname, '.publish-state.json');
+function loadLastSuccessAt() {
+  try {
+    const v = Number(JSON.parse(readFileSync(PUBLISH_STATE_FILE, 'utf8')).lastSuccessAt) || 0;
+    return v > 0 && v < 1e12 ? v * 1000 : v; // 兼容秒级时间戳（如从 git 提交时间回填）
+  } catch {
+    return 0;
+  }
+}
+const pubState = {
+  running: false,
+  stage: '',
+  note: '',
+  startedAt: 0,
+  ok: null,
+  error: '',
+  message: '',
+  lastSuccessAt: loadLastSuccessAt(),
+};
 
 // ---------- API ----------
 async function handleApi(req, res, url) {
@@ -380,9 +399,9 @@ async function handleApi(req, res, url) {
       });
     }
 
-    // 发布进度查询
+    // 发布进度查询（lastSuccessAt 每次实时读文件，避免多进程/重启时序问题）
     if (url.pathname === '/api/publish/status') {
-      return send(200, { ok: true, ...pubState });
+      return send(200, { ok: true, ...pubState, lastSuccessAt: loadLastSuccessAt() });
     }
 
     // 发布：git 存档 + 本地构建 + wrangler 部署到 Cloudflare Worker（全程约 1 分钟）
@@ -436,8 +455,10 @@ async function handleApi(req, res, url) {
       pubState.running = false;
       pubState.ok = true;
       pubState.stage = 'done';
+      pubState.lastSuccessAt = Date.now();
+      await fs.writeFile(PUBLISH_STATE_FILE, JSON.stringify({ lastSuccessAt: pubState.lastSuccessAt }), 'utf8').catch(() => {});
       pubState.message = `已上线 Cloudflare，几秒内生效。${archiveNote}`;
-      return send(200, { ok: true, message: pubState.message });
+      return send(200, { ok: true, message: pubState.message, lastSuccessAt: pubState.lastSuccessAt });
     }
 
     send(404, { ok: false, error: 'not found' });
