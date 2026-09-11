@@ -41,3 +41,4 @@ next-env.d.ts
 /.playwright-cli/
 *.tsbuildinfo
 admin-local/admin.log
+admin-local/.publish-state.json

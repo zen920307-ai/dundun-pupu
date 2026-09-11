@@ -28,14 +28,13 @@
     "tag": "出门胡闹"
   },
   {
-    "id": "kv-03",
+    "title": "今天适合把烦恼写成信",
+    "tag": "慢吞吞日常",
     "src": "/gallery/kv/03.webp",
     "thumb": "/gallery/kv/03-thumb.webp",
     "original": "/downloads/kv/03.png",
     "width": 1672,
-    "height": 941,
-    "title": "今天适合放空",
-    "tag": "慢吞吞日常"
+    "height": 941
   },
   {
     "id": "kv-04",
