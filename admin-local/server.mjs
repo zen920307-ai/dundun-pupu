@@ -138,7 +138,8 @@ function runCmd(cmd, timeoutMs = 300000, opts = {}) {
   const t0 = Date.now();
   return (async () => {
     await fs.writeFile(batFile, bat, 'utf8');
-    const child = spawn(batFile, [], { cwd: ROOT, windowsHide: true, env, timeout: timeoutMs });
+    // Node 22 禁止直接 spawn .cmd（CVE 修复），显式经 cmd.exe 启动
+    const child = spawn('cmd.exe', ['/d', '/s', '/c', batFile], { cwd: ROOT, windowsHide: true, env, timeout: timeoutMs });
     child.unref?.();
     for (;;) {
       await new Promise((r) => setTimeout(r, 1500));
