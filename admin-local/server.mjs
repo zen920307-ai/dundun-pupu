@@ -217,6 +217,51 @@ async function killBuildZombies() {
   await runCmd('taskkill /F /IM workerd.exe /T', 15000).catch(() => {});
 }
 
+// 构建专用：轮询日志判定完成。本机环境下构建完成后 npm 可能不退出（进程树挂住），
+// 所以不依赖进程退出，见到「Build complete」即成功并清理进程树
+async function runBuild(timeoutMs = 150000) {
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const logFile = path.join(os.tmpdir(), `admin-build-${stamp}.log`);
+  const doneFile = logFile + '.done';
+  const batFile = path.join(os.tmpdir(), `admin-build-${stamp}.cmd`);
+  await fs.writeFile(batFile, `@echo off\r\nnpm run build > "${logFile}" 2>&1\r\necho %ERRORLEVEL% > "${doneFile}"\r\n`, 'utf8');
+  const t0 = Date.now();
+  const child = spawn('cmd.exe', ['/d', '/s', '/c', batFile], { cwd: ROOT, windowsHide: true, env: cleanEnv() });
+  child.unref?.();
+  const killTree = () => runCmd(`taskkill /F /PID ${child.pid} /T`, 15000).catch(() => {});
+  try {
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 1500));
+      let log = '';
+      try {
+        log = await fs.readFile(logFile, 'utf8');
+      } catch {}
+      let done = false;
+      let code = '';
+      try {
+        code = (await fs.readFile(doneFile, 'utf8')).trim();
+        done = true;
+      } catch {}
+      if (log.includes('Build complete')) {
+        await killTree();
+        return { ok: true, output: log.slice(-4000) };
+      }
+      if (done) {
+        await killTree();
+        return { ok: code === '0', output: log.slice(-4000) };
+      }
+      if (Date.now() - t0 > timeoutMs) {
+        await killTree();
+        return { ok: false, output: log.slice(-4000) + '\n（构建超时被终止）' };
+      }
+    }
+  } finally {
+    await fs.rm(logFile, { force: true }).catch(() => {});
+    await fs.rm(doneFile, { force: true }).catch(() => {});
+    await fs.rm(batFile, { force: true }).catch(() => {});
+  }
+}
+
 // ---------- 发布任务状态（前端轮询 /api/publish/status 画进度条） ----------
 const pubState = { running: false, stage: '', note: '', startedAt: 0, ok: null, error: '', message: '' };
 
@@ -324,12 +369,12 @@ async function handleApi(req, res, url) {
       // 2. 构建（vinext build）——不带代理避免故障代理拖死；失败清僵尸重试一次
       pubState.stage = 'build';
       pubState.note = '正在构建网站（vinext build）…';
-      let build = await runCmd('npm run build', 150000);
+      let build = await runBuild(150000);
       if (!build.ok) {
         pubState.note = '构建异常，清理残留进程后重试…';
         await killBuildZombies();
         await new Promise((r) => setTimeout(r, 2000));
-        build = await runCmd('npm run build', 150000);
+        build = await runBuild(150000);
       }
       if (!build.ok) return fail(500, '构建失败：' + build.output.slice(-600));
       await killBuildZombies();
