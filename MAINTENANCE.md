@@ -75,3 +75,9 @@ app/playful-content.ts 存放扩展随机内容与不重复抽取逻辑：24 种
 ## 托管架构纠正 + 发布链路重写（2026-09-10 深夜）
 关键发现：dun.zenslab.top 实际由 **Cloudflare Worker `dundun-pupu`** 伺服（vinext SSR + 静态资产，响应头有 X-Vinext-* 的 Vary 特征），GitHub Pages 与该域名无关（github.io 301 到别处）。此前「保存并发布」只推 GitHub，线上当然不动。发布链路重写：admin「保存并发布」= git 存档推送（失败不阻塞）→ npm run build → wrangler 部署 --name dundun-pupu，全程约 1 分钟，结果回显到界面。runCmd 会剥离 NODE_OPTIONS（WorkBuddy 注入的 node shim 会包装 rmSync 使 vinext cleanBuildOutput 失败——仅 agent 测试环境有此注入，用户桌面环境无）。已删除 .github/workflows/pages.yml 与 scripts/prerender.mjs（GitHub Pages 构建与域名无关，且预渲染起的 wrangler dev 在 GH Actions 必挂死，参考 workers-sdk#7635）。部署名必须显式 --name dundun-pupu（dist/server/wrangler.json 里的 name 是脚手架默认 sites-project，误部署会产生孤儿 worker；sites-project 已经 CF API 删除）。域名绑定经 CF API workers/domains 确认。其它：favicon 从蓝色四格 svg 换成 duo.png 裁出的 favicon.png（layout.tsx icons 指向 /favicon.png）；start-hidden.vbs 重写为纯 ASCII（原中文路径被 wscript 按 ANSI 误读导致快捷方式报错），桌面快捷方式重建为直接指向 vbs；编辑表单精简为单图上传（thumb/original/width/height 等标 auto:true 不渲染，上传时 genimg.py 自动生成填充）。
 验证：本地 build 通过；部署成功（dundun-pupu 版本 ed20437e）；线上壁纸顺序更新（雨天在前=新版生效）、favicon.png 200、首页 200；/api/publish 端到端实测通过（1m23s）。遗留：GitHub 存档推送被用户代理 502 拦截，两个「发布链路验证」提交待网络恢复后补推。
+
+## 发布机制加固 + 界面修缮（2026-09-11 凌晨）
+favicon 换成拯提供的 Logo（public/media/logo.png → favicon.png 整图 contain + admin.ico），已上线（线上与本地 MD5 一致）。侧栏计数 bug 修复（原实现把当前模块数量写到所有标签，改为按模块记录后台补拉）。发布进度条：服务端 pubState + /api/publish/status 端点，前端轮询渲染「存档→构建→部署→上线」四步进度卡，失败展示真实错误。
+核心加固：本机环境下服务子进程里的 npm build / wrangler deploy 完成后进程不退出（独立进程正常，疑似与父进程监听套接字相关，esbuild/workerd 僵尸残留会连锁拖死后续构建）。runCmd 重写为「输出重定向临时日志 + .done 哨兵文件 + 轮询判定」，runBuild 见「Build complete」即成功、runDeploy 见「Current Version ID:」即成功，判定后 taskkill /T 清进程树；构建失败自动清僵尸重试，部署直连失败自动带代理重试。注意 Node 22 禁止直接 spawn .cmd，需 cmd.exe /d /s /c。
+验证：/api/publish 端到端 1m42s 完成（含 GitHub 存档推送成功）；线上 favicon MD5 与本地一致；Playwright 实测侧栏计数 21/24/14/0/20 各归各、切换不串、零 JS 报错。孤儿验证路径：被 curl 超时截断的发布中 wrangler 仍跑完并上线，反证部署链路可靠。
+
