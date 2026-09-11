@@ -211,6 +211,12 @@ async function generateVariants(dir, originalFile, baseName) {
   });
 }
 
+// 清理构建僵尸进程（被强杀的构建会留下 esbuild/workerd，拖死后续构建）
+async function killBuildZombies() {
+  await runCmd('taskkill /F /IM esbuild.exe /T', 15000).catch(() => {});
+  await runCmd('taskkill /F /IM workerd.exe /T', 15000).catch(() => {});
+}
+
 // ---------- 发布任务状态（前端轮询 /api/publish/status 画进度条） ----------
 const pubState = { running: false, stage: '', note: '', startedAt: 0, ok: null, error: '', message: '' };
 
@@ -315,11 +321,18 @@ async function handleApi(req, res, url) {
         const push = await gitExec(`git push origin ${GIT_BRANCH}`);
         archiveNote = push.ok ? '已推送 GitHub 存档' : 'GitHub 推送失败（不影响上线）：' + push.output.slice(-120);
       }
-      // 2. 构建（vinext build）——不带代理，避免构建内 fetch 被故障代理拖死
+      // 2. 构建（vinext build）——不带代理避免故障代理拖死；失败清僵尸重试一次
       pubState.stage = 'build';
       pubState.note = '正在构建网站（vinext build）…';
-      const build = await runCmd('npm run build', 300000);
-      if (!build.ok) return fail(500, '构建失败：' + build.output.slice(-500));
+      let build = await runCmd('npm run build', 150000);
+      if (!build.ok) {
+        pubState.note = '构建异常，清理残留进程后重试…';
+        await killBuildZombies();
+        await new Promise((r) => setTimeout(r, 2000));
+        build = await runCmd('npm run build', 150000);
+      }
+      if (!build.ok) return fail(500, '构建失败：' + build.output.slice(-600));
+      await killBuildZombies();
       // 3. 部署到 Cloudflare Worker（dun.zenslab.top 绑定 dundun-pupu）；直连失败自动带代理重试
       pubState.stage = 'deploy';
       pubState.note = '正在部署到 Cloudflare（上传资产）…';
