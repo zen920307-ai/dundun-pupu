@@ -81,3 +81,10 @@ favicon 换成拯提供的 Logo（public/media/logo.png → favicon.png 整图 c
 核心加固：本机环境下服务子进程里的 npm build / wrangler deploy 完成后进程不退出（独立进程正常，疑似与父进程监听套接字相关，esbuild/workerd 僵尸残留会连锁拖死后续构建）。runCmd 重写为「输出重定向临时日志 + .done 哨兵文件 + 轮询判定」，runBuild 见「Build complete」即成功、runDeploy 见「Current Version ID:」即成功，判定后 taskkill /T 清进程树；构建失败自动清僵尸重试，部署直连失败自动带代理重试。注意 Node 22 禁止直接 spawn .cmd，需 cmd.exe /d /s /c。
 验证：/api/publish 端到端 1m42s 完成（含 GitHub 存档推送成功）；线上 favicon MD5 与本地一致；Playwright 实测侧栏计数 21/24/14/0/20 各归各、切换不串、零 JS 报错。孤儿验证路径：被 curl 超时截断的发布中 wrangler 仍跑完并上线，反证部署链路可靠。
 
+## 页脚品牌字换成手写 logo + 三段入场动画（2026-09-19）
+- 页脚 `DUNDUN&PUPU`（Duo Chubby + 描边）换成设计师手写 logo 图片：`work/brand-logo.py` 把黑字白底 JPG 转成透明底、字色改页脚米白 `#f5f2e9`、`&` 单独上主题橙 `#ff711f`；源图留档 `ip-memory/generated/logo-handwritten-source.jpg`。
+- 为做分段动画，logo 按列投影拆成 `footer-brand-{dundun,amp,pupu}.webp` 三层，`work/footer-brand-parts.json` 存百分比坐标；CSS `.footer-brand-mark`（`aspect-ratio:1999/297`）+ 三层绝对定位拼回原样，`.footer-brand` 只保留底部分隔线。整图版 `footer-brand.webp` 与 `footer-brand-plain.webp`（全米白）保留作后备。
+- 动画（`page.tsx` 既有 motion 开关内）：ScrollTrigger `top 92%` 触发，DUNDUN 弹入 → PUPU 跟进 → `&` 用 elastic 过冲落下；鼠标经过时三段晃动一次（`pointerenter`，cleanup 里移除监听并 kill tween）。
+- 验证：playwright 连拍 5 帧确认时序与最终态；三层几何与脚本输出一致；移动端正常。
+- 已上线：commit 004bb60 + push origin master，`npm run build` → `npx wrangler deploy --config dist/server/wrangler.json --name dundun-pupu`（Version ID fd5150fb）；线上首页与三个 logo 资源 200、MD5 与本地一致、console 零错误。
+
