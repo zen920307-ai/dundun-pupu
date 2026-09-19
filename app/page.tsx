@@ -102,6 +102,9 @@ export default function Home() {
   }, []);
   useEffect(() => {
     if (!motion) return;
+    let brandWiggle: gsap.core.Tween | null = null;
+    const brandMark = root.current?.querySelector<HTMLElement>('.footer-brand-mark');
+    const tease = () => brandWiggle?.restart();
     const ctx = gsap.context(() => {
       gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) =>
         gsap.from(el, {
@@ -150,13 +153,60 @@ export default function Home() {
           },
         }),
       );
+      // 页脚 logo：DUNDUN / PUPU 先落地，& 再弹一下
+      const brandParts = gsap.utils.toArray<HTMLElement>('.brand-part');
+      if (brandParts.length === 3) {
+        const brandIn = gsap.timeline({
+          scrollTrigger: {
+            trigger: '.footer-brand',
+            start: 'top 92%',
+            toggleActions: 'play none none none',
+          },
+          defaults: { ease: 'back.out(1.6)', opacity: 0 },
+        });
+        brandIn
+          .from('.brand-dundun', {
+            yPercent: 55,
+            rotation: -7,
+            duration: 0.7,
+          })
+          .from(
+            '.brand-pupu',
+            { yPercent: 55, rotation: 7, duration: 0.7 },
+            '-=0.45',
+          )
+          .from(
+            '.brand-amp',
+            {
+              yPercent: 130,
+              scale: 0.4,
+              duration: 0.9,
+              ease: 'elastic.out(1,.45)',
+            },
+            '-=0.4',
+          );
+        // 鼠标路过就晃一下，当作 logo 被逗了
+        brandWiggle = gsap.to(brandParts, {
+          rotation: (i: number) => [3, -9, 3][i] ?? 3,
+          transformOrigin: 'bottom center',
+          duration: 0.2,
+          yoyo: true,
+          repeat: 1,
+          ease: 'power1.inOut',
+          paused: true,
+          overwrite: 'auto',
+        });
+      }
     }, root);
+    brandMark?.addEventListener('pointerenter', tease);
     let mounted = true;
     void document.fonts.ready.then(() => {
       if (mounted) ScrollTrigger.refresh();
     });
     return () => {
       mounted = false;
+      brandMark?.removeEventListener('pointerenter', tease);
+      brandWiggle?.kill();
       ctx.revert();
     };
   }, [motion]);
@@ -650,7 +700,32 @@ export default function Home() {
             loading="lazy"
           />
           <div className="footer-brand">
-            DUNDUN<span>&</span>PUPU
+            <span className="footer-brand-mark" role="img" aria-label="Dundun & Pupu">
+              <Image
+                unoptimized
+                className="brand-part brand-dundun"
+                src="/media/footer-brand-dundun.webp"
+                alt=""
+                width={1096}
+                height={275}
+              />
+              <Image
+                unoptimized
+                className="brand-part brand-amp"
+                src="/media/footer-brand-amp.webp"
+                alt=""
+                width={140}
+                height={158}
+              />
+              <Image
+                unoptimized
+                className="brand-part brand-pupu"
+                src="/media/footer-brand-pupu.webp"
+                alt=""
+                width={732}
+                height={283}
+              />
+            </span>
           </div>
           <div className="footer-bottom">
             <span>© {new Date().getFullYear()} 墩墩和噗噗 · 原创 IP</span>

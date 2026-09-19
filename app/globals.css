@@ -2058,21 +2058,35 @@ footer {
   z-index: 2;
 }
 .footer-brand {
-  font-family: 'Duo Chubby', 'Duo Happy', system-ui, sans-serif;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  margin-right: -0.16em;
-  -webkit-text-stroke: 2.4px currentColor;
-  paint-order: stroke fill;
-  font-size: clamp(40px, 9.4vw, 146px);
-  line-height: 1.1;
-  text-align: center;
-  white-space: nowrap;
   border-bottom: 1px solid #5a574d;
   padding-bottom: 28px;
 }
-.footer-brand span {
-  color: var(--orange);
+/* 手写 logo 分三层绝对定位，坐标由 work/brand-logo.py 按原图算出 */
+.footer-brand-mark {
+  display: block;
+  position: relative;
+  width: min(100%, 1180px);
+  aspect-ratio: 1999 / 297;
+  margin: 0 auto;
+}
+.footer-brand-mark .brand-part {
+  position: absolute;
+  height: auto;
+}
+.footer-brand-mark .brand-dundun {
+  left: 0;
+  top: 7.4074%;
+  width: 54.8274%;
+}
+.footer-brand-mark .brand-amp {
+  left: 55.8779%;
+  top: 21.8855%;
+  width: 7.0035%;
+}
+.footer-brand-mark .brand-pupu {
+  left: 63.3817%;
+  top: 0;
+  width: 36.6183%;
 }
 .footer-bottom {
   display: flex;
@@ -3096,7 +3110,6 @@ footer {
     margin-bottom: -20px;
   }
   .footer-brand {
-    font-size: 9.1vw;
     padding-bottom: 22px;
   }
   .footer-bottom {
