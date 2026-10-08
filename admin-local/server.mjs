@@ -1,7 +1,7 @@
 // ============================================================
 // 本地内容后台服务 —— node admin-local/server.mjs（或 npm run admin）
 // 只监听 127.0.0.1，仅本机可访问；数据写入 content/*.json，
-// 「保存并发布」= git 存档 + 本地构建 + wrangler 部署到 Cloudflare Worker，约 1 分钟后线上生效。
+// 「保存并发布」= git 存档 + 本地构建 + 增量上传阿里云 + 域名验证。
 // ============================================================
 import http from 'node:http';
 import fs from 'node:fs/promises';
@@ -15,7 +15,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const CONTENT_DIR = path.join(ROOT, 'content');
 const MEDIA_DIR = path.join(ROOT, 'public', 'cms-media');
-const PORT = 4321;
+const PORT = Number(process.env.PORT || 4321);
 const GIT_BRANCH = 'master';
 const noBrowser = process.argv.includes('--no-browser');
 
@@ -113,7 +113,7 @@ function gitExec(cmd) {
 
 // 长耗时命令（构建/部署）；剥离 NODE_OPTIONS 与代理变量，
 // 避免 require 钩子干扰构建、代理故障时构建内 fetch 挂死（YepFast 曾 502 拖死整个 build）
-const CF_WORKER_NAME = 'dundun-pupu'; // dun.zenslab.top 绑定的 Worker
+
 function cleanEnv({ keepProxy = false } = {}) {
   const env = { ...process.env };
   delete env.NODE_OPTIONS;
@@ -211,102 +211,9 @@ async function generateVariants(dir, originalFile, baseName) {
   });
 }
 
-// 清理构建僵尸进程（被强杀的构建会留下 esbuild/workerd，拖死后续构建）
-async function killBuildZombies() {
-  await runCmd('taskkill /F /IM esbuild.exe /T', 15000).catch(() => {});
-  await runCmd('taskkill /F /IM workerd.exe /T', 15000).catch(() => {});
-}
+function runBuild() { return runCmd('npm run build', 300000); }
 
-// 构建专用：轮询日志判定完成。本机环境下构建完成后 npm 可能不退出（进程树挂住），
-// 所以不依赖进程退出，见到「Build complete」即成功并清理进程树
-async function runBuild(timeoutMs = 150000) {
-  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-  const logFile = path.join(os.tmpdir(), `admin-build-${stamp}.log`);
-  const doneFile = logFile + '.done';
-  const batFile = path.join(os.tmpdir(), `admin-build-${stamp}.cmd`);
-  await fs.writeFile(batFile, `@echo off\r\nnpm run build > "${logFile}" 2>&1\r\necho %ERRORLEVEL% > "${doneFile}"\r\n`, 'utf8');
-  const t0 = Date.now();
-  const child = spawn('cmd.exe', ['/d', '/s', '/c', batFile], { cwd: ROOT, windowsHide: true, env: cleanEnv() });
-  child.unref?.();
-  const killTree = () => runCmd(`taskkill /F /PID ${child.pid} /T`, 15000).catch(() => {});
-  try {
-    for (;;) {
-      await new Promise((r) => setTimeout(r, 1500));
-      let log = '';
-      try {
-        log = await fs.readFile(logFile, 'utf8');
-      } catch {}
-      let done = false;
-      let code = '';
-      try {
-        code = (await fs.readFile(doneFile, 'utf8')).trim();
-        done = true;
-      } catch {}
-      if (log.includes('Build complete')) {
-        await killTree();
-        return { ok: true, output: log.slice(-4000) };
-      }
-      if (done) {
-        await killTree();
-        return { ok: code === '0', output: log.slice(-4000) };
-      }
-      if (Date.now() - t0 > timeoutMs) {
-        await killTree();
-        return { ok: false, output: log.slice(-4000) + '\n（构建超时被终止）' };
-      }
-    }
-  } finally {
-    await fs.rm(logFile, { force: true }).catch(() => {});
-    await fs.rm(doneFile, { force: true }).catch(() => {});
-    await fs.rm(batFile, { force: true }).catch(() => {});
-  }
-}
-
-// 部署专用：与 runBuild 同款轮询判定。wrangler 打印「Current Version ID:」即部署完成，
-// 不等待进程退出（本机环境下 wrangler 也可能挂住不退出）
-async function runDeploy(timeoutMs = 300000, opts = {}) {
-  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-  const logFile = path.join(os.tmpdir(), `admin-deploy-${stamp}.log`);
-  const doneFile = logFile + '.done';
-  const batFile = path.join(os.tmpdir(), `admin-deploy-${stamp}.cmd`);
-  const cmd = `npx wrangler deploy --config dist/server/wrangler.json --name ${CF_WORKER_NAME}`;
-  await fs.writeFile(batFile, `@echo off\r\n${cmd} > "${logFile}" 2>&1\r\necho %ERRORLEVEL% > "${doneFile}"\r\n`, 'utf8');
-  const t0 = Date.now();
-  const child = spawn('cmd.exe', ['/d', '/s', '/c', batFile], { cwd: ROOT, windowsHide: true, env: cleanEnv(opts) });
-  child.unref?.();
-  const killTree = () => runCmd(`taskkill /F /PID ${child.pid} /T`, 15000).catch(() => {});
-  try {
-    for (;;) {
-      await new Promise((r) => setTimeout(r, 1500));
-      let log = '';
-      try {
-        log = await fs.readFile(logFile, 'utf8');
-      } catch {}
-      let done = false;
-      let code = '';
-      try {
-        code = (await fs.readFile(doneFile, 'utf8')).trim();
-        done = true;
-      } catch {}
-      if (log.includes('Current Version ID:')) {
-        await killTree();
-        return { ok: true, output: log.slice(-4000) };
-      }
-      if (done) {
-        await killTree();
-        return { ok: code === '0' && log.includes('Current Version ID:'), output: log.slice(-4000) };
-      }
-      if (Date.now() - t0 > timeoutMs) {
-        await killTree();
-        return { ok: false, output: log.slice(-4000) + '\n（部署超时被终止）' };
-      }
-    }
-  } finally {
-    await fs.rm(logFile, { force: true }).catch(() => {});
-    await fs.rm(doneFile, { force: true }).catch(() => {});
-    await fs.rm(batFile, { force: true }).catch(() => {});
-  }
-}
+function runDeploy() { return runCmd('node scripts/deploy-aliyun.mjs', 1800000); }
 
 // ---------- 发布任务状态（前端轮询 /api/publish/status 画进度条） ----------
 // lastSuccessAt 持久化到本地，服务重启后顶栏仍能显示「上次上线时间」
@@ -404,7 +311,7 @@ async function handleApi(req, res, url) {
       return send(200, { ok: true, ...pubState, lastSuccessAt: loadLastSuccessAt() });
     }
 
-    // 发布：git 存档 + 本地构建 + wrangler 部署到 Cloudflare Worker（全程约 1 分钟）
+    // 发布：git 存档 + 本地构建 + 部署到阿里云（上传全站资源后上线）
     if (url.pathname === '/api/publish' && req.method === 'POST') {
       const { message } = await body().catch(() => ({ message: '' }));
       if (pubState.running) return send(409, { ok: false, error: '已有发布任务在进行中，请等它完成' });
@@ -431,33 +338,21 @@ async function handleApi(req, res, url) {
         const push = await gitExec(`git push origin ${GIT_BRANCH}`);
         archiveNote = push.ok ? '已推送 GitHub 存档' : 'GitHub 推送失败（不影响上线）：' + push.output.slice(-120);
       }
-      // 2. 构建（vinext build）——不带代理避免故障代理拖死；失败清僵尸重试一次
       pubState.stage = 'build';
-      pubState.note = '正在构建网站（vinext build）…';
-      let build = await runBuild(150000);
-      if (!build.ok) {
-        pubState.note = '构建异常，清理残留进程后重试…';
-        await killBuildZombies();
-        await new Promise((r) => setTimeout(r, 2000));
-        build = await runBuild(150000);
-      }
+      pubState.note = '正在构建阿里云运行包…';
+      const build = await runBuild();
       if (!build.ok) return fail(500, '构建失败：' + build.output.slice(-600));
-      await killBuildZombies();
-      // 3. 部署到 Cloudflare Worker（dun.zenslab.top 绑定 dundun-pupu）；直连失败自动带代理重试
+      // 3. 上传完整运行包，健康检查成功后启用新版本
       pubState.stage = 'deploy';
-      pubState.note = '正在部署到 Cloudflare（上传资产）…';
-      let deploy = await runDeploy(300000);
-      if (!deploy.ok) {
-        pubState.note = '直连部署失败，改走代理重试…';
-        deploy = await runDeploy(300000, { keepProxy: true });
-      }
-      if (!deploy.ok) return fail(500, 'Cloudflare 部署失败：' + deploy.output.slice(-600));
+      pubState.note = '正在上传到阿里云并验证新版本…';
+      const deploy = await runDeploy();
+      if (!deploy.ok) return fail(500, '阿里云部署失败：' + deploy.output.slice(-600));
       pubState.running = false;
       pubState.ok = true;
       pubState.stage = 'done';
       pubState.lastSuccessAt = Date.now();
       await fs.writeFile(PUBLISH_STATE_FILE, JSON.stringify({ lastSuccessAt: pubState.lastSuccessAt }), 'utf8').catch(() => {});
-      pubState.message = `已上线 Cloudflare，几秒内生效。${archiveNote}`;
+      pubState.message = `已上线阿里云，域名验证通过。${archiveNote}`;
       return send(200, { ok: true, message: pubState.message, lastSuccessAt: pubState.lastSuccessAt });
     }
 

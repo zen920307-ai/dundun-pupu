@@ -28,9 +28,9 @@
 ## 生效流程
 
 1. **保存**：只写入本地 `content/*.json`（关页面不丢，但线上还没变）
-2. **🚀 保存并发布**：自动 `git add + commit + push` → GitHub Actions 重建 → **通常 3~10 分钟后线上更新**
-3. 构建状态在仓库 Actions 页看：https://github.com/zen920307-ai/dundun-pupu/actions
-4. push 失败（如网络/凭据问题）会把 git 输出显示出来
+2. **保存并发布**：Git 存档 → 本地构建 → SSH 上传变动文件 → 阿里云健康检查 → 验证 `https://dun.zenslab.top` 的新版本。
+3. 进度和失败原因会直接显示在后台。GitHub 推送失败不会阻止阿里云发布。
+4. 首次上传包含全部图片和视频；以后只上传变动文件。上传耗时取决于素材大小和网络。
 
 ## 数据文件
 
@@ -50,5 +50,5 @@
 ## 注意
 
 - **大视频别从这里传**：GitHub 单文件限 100MB，仓库建议保持 2GB 以内；大素材继续手动处理
-- Worker 名 `dundun-pupu` 与域名绑定关系写在 Cloudflare 控制台；换名需同步改 `server.mjs` 的 `CF_WORKER_NAME`
+- 服务器 `182.92.151.173`，部署目录 `/srv/dundun-pupu`，发布脚本 `scripts/deploy-aliyun.mjs`。沿用本机 `.ssh/lvji_aliyun_rsa_v2` 密钥，不把密钥复制到仓库。
 - 备用方案（云端秒级实时，腾讯云开发）已在 git 历史中验证过结构，需要时可恢复

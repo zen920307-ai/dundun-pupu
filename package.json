@@ -8,8 +8,9 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
-    "start": "wrangler dev --config dist/server/wrangler.json",
+    "start": "node dist/standalone/server.js",
     "admin": "node admin-local/server.mjs",
+    "deploy:aliyun": "node scripts/deploy-aliyun.mjs",
     "lint": "oxlint",
     "format": "oxfmt"
   },
