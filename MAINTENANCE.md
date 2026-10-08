@@ -1,5 +1,13 @@
 # 网站维护
 
+## 当前部署：阿里云（2026-10-08）
+
+`https://dun.zenslab.top` 已迁移到阿里云 ECS `182.92.151.173`。Cloudflare 仅管理 DNS，`dun` 为 DNS only 的 A 记录；旧 Worker 自定义域名绑定已移除，Worker 本身保留作备份。下方历史记录中的 Cloudflare / GitHub Pages 部署说明不再适用于当前发布。
+
+本地后台保持 `http://127.0.0.1:4321`，保存并发布为 Git 存档 → vinext 独立 Node 构建 → SSH 增量上传 → 健康检查 → 域名版本验证。服务器配置、回滚和运行路径见 `deploy/README.md`。Node 24 独立安装，不覆盖同机其他服务。HTTPS 通过 Certbot webroot 自动续期，模拟续期已通过，现有 Nginx 续期重载钩子继续使用。
+
+验证：四个页面、188 个素材地址、视频分段请求、后台公网隔离；正式域名的桌面/手机浏览器、离屏暂停、图片与脚本错误检查均通过。本地后台保存与图片上传、增量发布、删除测试素材后再次发布均实测成功。测试素材已删除，GitHub 存档推送成功。截图在 `outputs/aliyun-desktop.png` 和 `outputs/aliyun-mobile.png`。
+
 ## 2026-09-08 片尾定格在亮白帧（不播自带淡出段）
 - 探测：视频 30.08s，语音 29.21s 已结束（silencedetect），29.5s 帧仍亮白，~29.55s 起片尾自带压暗淡出，末帧暗灰。之前的「播完变暗」= 片尾淡出段 + hero-shade 双重叠加。
 - 修复：page.tsx 定 `VIDEO_STOP_TIME = 29.45`，rAF 循环在播放中到达该点即 pause 并视为播完（endedRef + heroEnded），定格在亮白帧；hero 加 `hero-ended` 类，`.hero-shade` 过渡淡出（0.9s）。手动播放按钮对「已定格」视频（currentTime ≥ 29.45 或 ended）先归零再播，遮罩恢复；从头播放按钮同步处理。onEnded 保留作兜底。
@@ -87,4 +95,3 @@ favicon 换成拯提供的 Logo（public/media/logo.png → favicon.png 整图 c
 - 动画（`page.tsx` 既有 motion 开关内）：ScrollTrigger `top 92%` 触发，DUNDUN 弹入 → PUPU 跟进 → `&` 用 elastic 过冲落下；鼠标经过时三段晃动一次（`pointerenter`，cleanup 里移除监听并 kill tween）。
 - 验证：playwright 连拍 5 帧确认时序与最终态；三层几何与脚本输出一致；移动端正常。
 - 已上线：commit 004bb60 + push origin master，`npm run build` → `npx wrangler deploy --config dist/server/wrangler.json --name dundun-pupu`（Version ID fd5150fb）；线上首页与三个 logo 资源 200、MD5 与本地一致、console 零错误。
-
