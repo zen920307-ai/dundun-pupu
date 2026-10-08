@@ -134,7 +134,7 @@ function runCmd(cmd, timeoutMs = 300000, opts = {}) {
   const logFile = path.join(os.tmpdir(), `admin-cmd-${stamp}.log`);
   const doneFile = logFile + '.done';
   const batFile = path.join(os.tmpdir(), `admin-cmd-${stamp}.cmd`);
-  const bat = `@echo off\r\n${cmd} > "${logFile}" 2>&1\r\necho %ERRORLEVEL% > "${doneFile}"\r\n`;
+  const bat = `@echo off\r\ncall ${cmd} > "${logFile}" 2>&1\r\necho %ERRORLEVEL% > "${doneFile}"\r\n`;
   const t0 = Date.now();
   return (async () => {
     await fs.writeFile(batFile, bat, 'utf8');
